@@ -1,0 +1,40 @@
+{
+  "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+  "version": "0.2",
+  "language": "en",
+  "files": ["src/**/*.ts", "src/**/*.scss"],
+  "ignorePaths": ["node_modules", "dist", ".angular"],
+  "patterns": [
+    {
+      "name": "string-literals",
+      "description": "User-facing Portuguese text and test data live in strings; identifiers and comments must be English.",
+      "pattern": [
+        "/'(?:[^'\\\\\\n]|\\\\.)*'/g",
+        "/`(?:[^`\\\\]|\\\\.)*`/g",
+        "/\"(?:[^\"\\\\\\n]|\\\\.)*\"/g"
+      ]
+    }
+  ],
+  "ignoreRegExpList": ["string-literals"],
+  "words": [
+    "Barlow",
+    "Copernicus",
+    "echarts",
+    "Golay",
+    "haversine",
+    "IUGG",
+    "Lngs",
+    "lons",
+    "Meteo",
+    "Minetti",
+    "mulberry",
+    "nums",
+    "Riegel",
+    "rtept",
+    "Savitzky",
+    "topbar",
+    "trkpt",
+    "trkseg",
+    "vdot"
+  ]
+}

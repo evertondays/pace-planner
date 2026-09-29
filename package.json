@@ -6,9 +6,15 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "spell": "cspell --no-progress",
+    "format": "prettier --write src",
+    "format:check": "prettier --check src"
   },
   "private": true,
+  "engines": {
+    "node": "^22.22.3 || >=24.15.0"
+  },
   "packageManager": "npm@11.19.0",
   "dependencies": {
     "@angular/common": "^22.2.0",
@@ -28,6 +34,7 @@
     "@angular/compiler-cli": "^22.2.0",
     "@angular/localize": "^22.2.0",
     "@types/leaflet": "^1.9.22",
+    "cspell": "^10.3.6",
     "jsdom": "^30.0.0",
     "prettier": "^3.8.1",
     "typescript": "~6.0.2",

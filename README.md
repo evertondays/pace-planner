@@ -1,59 +1,45 @@
-# PacePlanner
+# Pace Planner
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.2.0.
+Estima o tempo de chegada e o pace alvo de cada km de uma prova com altimetria, a partir de uma
+prova de referência plana. Mesmo esforço (VDOT de Daniels), terreno real (custo por inclinação de
+Minetti). Roda inteiro no navegador, sem backend.
 
-## Development server
+- Especificação do projeto: [doc.md](doc.md)
+- Diretivas de design: [design-system.md](design-system.md)
 
-To start a local development server, run:
+## Desenvolvimento
 
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Requer Node 24 (ou 22.22.3+).
 
 ```bash
-ng generate component component-name
+npm install
+npm start          # http://localhost:4200
+npm test -- --watch=false
+npm run spell      # cspell: identificadores e comentários em inglês
+npm run format     # prettier
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Estrutura
 
-```bash
-ng generate --help
+```text
+src/app/
+├── core/          # TypeScript puro, sem Angular
+│   ├── model/     # VDOT, custo por inclinação, estimador, splits
+│   ├── route/     # GPX, haversine, grade de 20 m, suavização, perfil
+│   └── elevation/ # Open-Meteo (único ponto com HttpClient)
+├── state/         # PlannerStore: signals, computed e localStorage
+├── features/      # componentes da tela
+└── shared/        # formatadores, tema, ícones
 ```
 
-## Building
+## Deploy
 
-To build the project run:
+O workflow [.github/workflows/deploy.yml](.github/workflows/deploy.yml) roda spell check,
+formatação, testes e build a cada push e publica a `main` no GitHub Pages em
+`https://<usuario>.github.io/pace-planner/`. Em Settings → Pages do repositório, escolha
+"GitHub Actions" como origem.
 
-```bash
-ng build
-```
+## Créditos
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Elevação: Copernicus DEM GLO-90 via [Open-Meteo](https://open-meteo.com/) (CC BY 4.0). Mapa ©
+colaboradores do [OpenStreetMap](https://www.openstreetmap.org/copyright).
