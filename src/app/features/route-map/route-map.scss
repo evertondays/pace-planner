@@ -9,6 +9,8 @@ app-route-map {
     height: 360px;
     background: var(--surface);
     border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    overflow: hidden; // clip tiles to the rounded corners
     font-family: var(--font-sans);
 
     @media (max-width: 720px) {

@@ -45,7 +45,7 @@ Regras: no máximo três tamanhos por card; a unidade nunca tem o mesmo tamanho 
 
 ## Layout e grid
 
-Grid de 12 colunas no desktop (máx. 1280px, gutter `space-6`), 4 colunas no mobile (gutter `space-4`). Base de 8px para tudo. Cantos retos (`radius-0`) em botões, cards e imagens; `radius-pill` só em chips e tags de distância (5K · 10K · 21K · 42K); `radius-sm` em campos.
+Grid de 12 colunas no desktop (máx. 1280px, gutter `space-6`), 4 colunas no mobile (gutter `space-4`). Base de 8px para tudo. Cantos retos (`radius-0`) em botões, cards e imagens; `radius-pill` só em chips e tags de distância (5K · 10K · 21K · 42K); `radius-sm` em campos e na moldura de mapas.
 
 Composições recomendadas: hero com foto sangrando a tela e título `display-xl` sobreposto em `on-inverse`; grids de métricas com divisores `line` entre células (em vez de cards separados); listas de provas como tabelas limpas, uma linha `line` entre itens.
 
@@ -149,7 +149,7 @@ Cantos retos por padrão (precisão, pista). Pílula só para elementos pequenos
 | Token | Valor | Uso |
 |---|---|---|
 | `radius-0` | 0 | Botões, cards, imagens, blocos invertidos. |
-| `radius-sm` | 4px | Campos de formulário, tooltips, barras de progresso. |
+| `radius-sm` | 4px | Campos de formulário, tooltips, barras de progresso, moldura de mapas. |
 | `radius-pill` | 9999px | Chips de filtro, tags de distância (5K, 10K, 21K), toggles, avatares. |
 
 ## CSS pronto
