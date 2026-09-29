@@ -15,6 +15,12 @@ h2,
 
 .time {
   font-size: 20px;
+  letter-spacing: 0.02em;
+}
+
+.help,
+.notice p {
+  margin: 0;
 }
 
 .error-text {

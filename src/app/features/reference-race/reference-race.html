@@ -61,22 +61,43 @@
       class="input time"
       [class.invalid]="timeInvalid()"
       inputmode="numeric"
-      placeholder="1:30:00"
+      placeholder="0:00:00"
       autocomplete="off"
+      maxlength="8"
       [value]="timeText()"
-      (input)="applyTime($any($event.target).value, false)"
-      (change)="applyTime($any($event.target).value, true)"
+      (input)="onTimeInput($event)"
+      (blur)="onTimeBlur()"
       [attr.aria-invalid]="timeInvalid()"
+      aria-describedby="reference-time-help"
     />
     @if (timeInvalid()) {
       <p class="small error-text">
         <app-icon name="alert" [size]="16" />
-        <span i18n>Use h:mm:ss ou mm:ss, por exemplo 1:30:00 ou 42:30.</span>
+        <span i18n>Minutos e segundos vão até 59, por exemplo 1:30:00 ou 42:30.</span>
+      </p>
+    } @else {
+      <p id="reference-time-help" class="small muted help" i18n>
+        Digite só os números: 13000 vira 1:30:00 e 4230 vira 42:30.
       </p>
     }
   </div>
 
-  @if (vdot(); as vdot) {
+  @if (store.vdotIssue(); as issue) {
+    <div class="notice error" role="alert">
+      <app-icon name="alert" [size]="18" />
+      @if (issue === 'too-high') {
+        <p i18n>
+          Esse tempo é mais rápido que os recordes mundiais para a distância. Confira a distância e
+          o tempo.
+        </p>
+      } @else {
+        <p i18n>
+          Esse tempo corresponde a ritmo de caminhada (VDOT abaixo de {{ vdotRange.min }}), fora do
+          alcance das fórmulas de corrida. Confira a distância e o tempo.
+        </p>
+      }
+    </div>
+  } @else if (vdot(); as vdot) {
     <div class="fitness">
       <div class="vdot">
         <span class="label" i18n>Seu VDOT</span>

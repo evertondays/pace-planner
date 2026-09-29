@@ -1,17 +1,22 @@
 import { DEFAULT_MODEL_CONFIG } from '../core/model/grade-cost';
-import { ModelConfig, ReferenceRace } from '../core/model/types';
+import { ModelConfig } from '../core/model/types';
 import { DEFAULT_PROFILE_CONFIG } from '../core/route/profile';
 import { ElevationSource, ProfileConfig } from '../core/route/types';
-import type { LoadedRoute } from './planner.store';
+import type { LoadedRoute, ReferenceInput } from './planner.store';
 
 const SETTINGS_KEY = 'pace-planner:settings:v1';
 const ROUTE_KEY = 'pace-planner:route:v1';
 
 export interface StoredSettings {
-  referenceRace: ReferenceRace;
+  referenceInput: ReferenceInput;
   modelConfig: ModelConfig;
   profileConfig: ProfileConfig;
   elevationSource: ElevationSource;
+}
+
+/** Settings saved before the reference could be left empty. */
+interface LegacySettings {
+  referenceRace?: Partial<ReferenceInput>;
 }
 
 /** Compact route: points as [lat, lon, elevation?] tuples. */
@@ -26,12 +31,15 @@ export function saveSettings(settings: StoredSettings): void {
 }
 
 export function loadSettings(): StoredSettings | null {
-  const value = read<Partial<StoredSettings>>(SETTINGS_KEY);
-  const reference = value?.referenceRace;
-  if (!reference || !(reference.distanceM > 0) || !(reference.timeS > 0)) return null;
+  const value = read<Partial<StoredSettings> & LegacySettings>(SETTINGS_KEY);
+  if (!value) return null;
+  const reference = value.referenceInput ?? value.referenceRace;
 
   return {
-    referenceRace: { distanceM: reference.distanceM, timeS: reference.timeS },
+    referenceInput: {
+      distanceM: positiveOrNull(reference?.distanceM),
+      timeS: positiveOrNull(reference?.timeS),
+    },
     modelConfig: { ...DEFAULT_MODEL_CONFIG, ...value.modelConfig },
     profileConfig: { ...DEFAULT_PROFILE_CONFIG, ...value.profileConfig },
     elevationSource: value.elevationSource === 'open-meteo' ? 'open-meteo' : 'gpx',
@@ -65,6 +73,10 @@ export function loadStoredRoute(): LoadedRoute | null {
       elevationM === undefined ? { lat, lon } : { lat, lon, elevationM },
     ),
   };
+}
+
+function positiveOrNull(value: unknown): number | null {
+  return typeof value === 'number' && value > 0 ? value : null;
 }
 
 function round(value: number, digits: number): number {

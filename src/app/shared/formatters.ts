@@ -82,6 +82,24 @@ export function formatDecimal(value: number, maxFractionDigits = 4): string {
   });
 }
 
+/** Longest time the mask accepts: 6 digits, up to 99:59:59. */
+const MAX_TIME_DIGITS = 6;
+
+/** Digits of a typed or pasted time, without leading zeros: "01:30:00" → "13000". */
+export function timeDigits(text: string): string {
+  return text.replace(/\D/g, '').replace(/^0+/, '').slice(0, MAX_TIME_DIGITS);
+}
+
+/**
+ * Stopwatch-style mask: digits fill from the right, so typing 1-3-0-0-0 shows
+ * "1", "13", "1:30", "13:00", then "1:30:00".
+ */
+export function formatTimeDigits(digits: string): string {
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, -2)}:${digits.slice(-2)}`;
+  return `${digits.slice(0, -4)}:${digits.slice(-4, -2)}:${digits.slice(-2)}`;
+}
+
 /**
  * Parses "h:mm:ss" or "mm:ss" into seconds. Returns null for anything else,
  * including minutes or seconds above 59 in the lower positions.

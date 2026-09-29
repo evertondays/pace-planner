@@ -13,7 +13,7 @@ import { estimate, predictFlatTimeS } from '../core/model/estimator';
 import { createGradeCostModel, DEFAULT_MODEL_CONFIG } from '../core/model/grade-cost';
 import { ModelConfig, ReferenceRace } from '../core/model/types';
 import { UNIT_LENGTH_M } from '../core/model/units';
-import { calculateVdot } from '../core/model/vdot';
+import { calculateVdot, checkVdot } from '../core/model/vdot';
 import { cumulativeDistancesM } from '../core/route/geo';
 import { parseGpx } from '../core/route/gpx-parser';
 import { buildProfile, DEFAULT_PROFILE_CONFIG, MIN_ROUTE_DISTANCE_M } from '../core/route/profile';
@@ -29,6 +29,12 @@ export interface LoadedRoute {
 }
 
 export type RouteError = 'invalid-file' | 'no-points' | 'too-short';
+
+/** Reference race as typed so far; either field may still be missing. */
+export interface ReferenceInput {
+  distanceM: number | null;
+  timeS: number | null;
+}
 
 export type ApiElevationState =
   | { status: 'idle' }
@@ -50,7 +56,7 @@ export class PlannerStore {
   readonly routeError = signal<RouteError | null>(null);
   readonly elevationSource = signal<ElevationSource>('gpx');
   readonly profileConfig = signal<ProfileConfig>(DEFAULT_PROFILE_CONFIG);
-  readonly referenceRace = signal<ReferenceRace>({ distanceM: 21_097.5, timeS: 5400 });
+  readonly referenceInput = signal<ReferenceInput>({ distanceM: null, timeS: null });
   readonly modelConfig = signal<ModelConfig>(DEFAULT_MODEL_CONFIG);
   readonly apiElevation = signal<ApiElevationState>({ status: 'idle' });
 
@@ -93,31 +99,45 @@ export class PlannerStore {
 
   readonly gradeModel = computed(() => createGradeCostModel(this.modelConfig()));
 
+  /** The reference race once both distance and time are filled in. */
+  readonly referenceRace = computed<ReferenceRace | null>(() => {
+    const { distanceM, timeS } = this.referenceInput();
+    return distanceM && timeS ? { distanceM, timeS } : null;
+  });
+
   /** Fitness from the reference race alone; available before any route is loaded. */
   readonly vdot = computed(() => {
     const reference = this.referenceRace();
-    return isValidReference(reference)
-      ? calculateVdot(reference.distanceM, reference.timeS / 60)
-      : null;
+    return reference ? calculateVdot(reference.distanceM, reference.timeS / 60) : null;
   });
+
+  /** Set when the VDOT is outside the plausible range, which usually means a typo. */
+  readonly vdotIssue = computed(() => {
+    const vdot = this.vdot();
+    return vdot === null ? null : checkVdot(vdot);
+  });
+
+  /** Reference used by the estimate: complete and plausible. */
+  readonly validReference = computed(() => (this.vdotIssue() ? null : this.referenceRace()));
 
   readonly estimate = computed(() => {
     const profile = this.profile();
-    const reference = this.referenceRace();
-    if (!profile || !isValidReference(reference)) return null;
+    const reference = this.validReference();
+    if (!profile || !reference) return null;
     return estimate(reference, profile.segments, this.gradeModel(), this.splitLengthM());
   });
 
   /** Time for the same effort on a flat course of the same distance. */
   readonly flatTimeS = computed(() => {
     const profile = this.profile();
-    const reference = this.referenceRace();
-    if (!profile || !isValidReference(reference)) return null;
+    const reference = this.validReference();
+    if (!profile || !reference) return null;
     return predictFlatTimeS(reference, profile.summary.totalDistanceM);
   });
 
   readonly referenceOutOfRange = computed(() => {
-    const { distanceM } = this.referenceRace();
+    const { distanceM } = this.referenceInput();
+    if (distanceM === null) return false;
     return distanceM < REFERENCE_MIN_DISTANCE_M || distanceM > REFERENCE_MAX_DISTANCE_M;
   });
 
@@ -134,7 +154,7 @@ export class PlannerStore {
 
     effect(() => {
       saveSettings({
-        referenceRace: this.referenceRace(),
+        referenceInput: this.referenceInput(),
         modelConfig: this.modelConfig(),
         profileConfig: this.profileConfig(),
         elevationSource: this.elevationSource(),
@@ -170,11 +190,13 @@ export class PlannerStore {
     this.profileConfig.update(({ officialDistanceM: _, ...config }) => config);
   }
 
+  /** Removes the loaded route (and its official distance), back to the upload state. */
   clearRoute(): void {
     this.rawRoute.set(null);
     this.routeError.set(null);
     this.apiElevation.set({ status: 'idle' });
     this.selectedSplit.set(null);
+    this.profileConfig.update(({ officialDistanceM: _, ...config }) => config);
   }
 
   retryApiElevation(): void {
@@ -211,7 +233,7 @@ export class PlannerStore {
   private restore(): void {
     const settings = loadSettings();
     if (settings) {
-      this.referenceRace.set(settings.referenceRace);
+      this.referenceInput.set(settings.referenceInput);
       this.modelConfig.set(settings.modelConfig);
       this.profileConfig.set(settings.profileConfig);
       this.elevationSource.set(settings.elevationSource);
@@ -219,8 +241,4 @@ export class PlannerStore {
     const route = loadStoredRoute();
     if (route) this.setRoute(route);
   }
-}
-
-function isValidReference(reference: ReferenceRace): boolean {
-  return reference.distanceM > 0 && reference.timeS > 0;
 }

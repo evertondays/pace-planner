@@ -386,6 +386,8 @@ O MVP é uma única tela: entradas numa coluna lateral e resultados no painel pr
 - GPX sem pontos ou com menos de 500 m: erro claro.
 - GPX sem elevação: sugerir automaticamente a Open-Meteo.
 - Prova de referência fora da faixa em que as fórmulas foram ajustadas (menos de 1.500 m ou mais que uma maratona): aviso de que a estimativa perde precisão.
+- VDOT implausível: acima de 88 (mais rápido que os recordes mundiais, cerca de 85,5) ou abaixo de 20 (ritmo de caminhada) indica erro de digitação; o app mostra o aviso e não calcula a estimativa. O percurso continua na tela enquanto a referência está incompleta ou inválida.
+- Nenhum valor vem pré-preenchido: a prova de referência começa sem distância e sem tempo. O campo de tempo usa máscara de cronômetro (os dígitos preenchem da direita: 13000 vira 1:30:00).
 - Falha na API: manter a elevação do GPX, se houver, e mostrar o aviso.
 
 ## Testes e validação

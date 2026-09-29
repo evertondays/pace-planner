@@ -48,6 +48,8 @@ export class RouteMap {
   private map?: L.Map;
   private routeLayer = L.layerGroup();
   private selectionLayer = L.layerGroup();
+  /** Split markers by split index, to highlight the selected one. */
+  private splitMarkers = new Map<number, L.Marker>();
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -93,6 +95,7 @@ export class RouteMap {
 
   private drawRoute(map: L.Map, points: ProfilePoint[], unit: DistanceUnit): void {
     this.routeLayer.clearLayers();
+    this.splitMarkers.clear();
     const latLngs = points.map((p) => L.latLng(p.lat, p.lon));
     const line = L.polyline(latLngs, { className: 'route-line', interactive: false });
     this.routeLayer.addLayer(line);
@@ -114,6 +117,7 @@ export class RouteMap {
       // The marker sits where split `index` ends.
       marker.on('click', () => this.store.toggleSplit(index));
       this.routeLayer.addLayer(marker);
+      this.splitMarkers.set(index, marker);
     });
 
     const start = points[0];
@@ -124,8 +128,16 @@ export class RouteMap {
     map.fitBounds(line.getBounds(), { padding: [24, 24] });
   }
 
+  /**
+   * Highlights a split: the rest of the route fades, the split is drawn in full
+   * ink over a background-colored casing, and its end marker is inverted.
+   */
   private drawSelection(map: L.Map, points: ProfilePoint[], split: Split | undefined): void {
     this.selectionLayer.clearLayers();
+    this.host().nativeElement.classList.toggle('has-selection', !!split);
+    for (const [index, marker] of this.splitMarkers) {
+      marker.getElement()?.classList.toggle('selected', index === split?.index);
+    }
     if (!split) return;
 
     const startM = split.startM;
@@ -134,11 +146,11 @@ export class RouteMap {
     const inside = points
       .filter((p) => p.distanceM > startM && p.distanceM < endM)
       .map((p) => L.latLng(p.lat, p.lon));
+    const latLngs = [start, ...inside, end];
 
-    const line = L.polyline([start, ...inside, end], {
-      className: 'route-line-selected',
-      interactive: false,
-    });
+    const casing = L.polyline(latLngs, { className: 'route-line-casing', interactive: false });
+    const line = L.polyline(latLngs, { className: 'route-line-selected', interactive: false });
+    this.selectionLayer.addLayer(casing);
     this.selectionLayer.addLayer(line);
     if (!map.getBounds().contains(line.getBounds())) map.panTo(line.getBounds().getCenter());
   }

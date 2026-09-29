@@ -27,12 +27,26 @@ app-route-map {
   .route-line {
     stroke: var(--ink);
     stroke-width: 3px;
+    transition:
+      stroke var(--duration) var(--ease),
+      stroke-opacity var(--duration) var(--ease);
+  }
+
+  // Selected split: the rest of the route fades to gray, the split keeps full ink
+  // over a casing in the background color, which separates it from the tiles.
+  .has-selection .route-line {
+    stroke: var(--ink-subtle);
+    stroke-opacity: 0.5;
+  }
+
+  .route-line-casing {
+    stroke: var(--bg);
+    stroke-width: 12px;
   }
 
   .route-line-selected {
     stroke: var(--ink);
-    stroke-width: 8px;
-    stroke-linecap: butt;
+    stroke-width: 6px;
   }
 
   .split-marker {
@@ -45,6 +59,18 @@ app-route-map {
     font-size: 11px;
     font-weight: 500;
     line-height: 1;
+    transition: opacity var(--duration) var(--ease);
+
+    &.selected {
+      z-index: 1000 !important; // above the nearby markers (Leaflet sets it inline)
+      background: var(--inverse);
+      border-color: var(--inverse);
+      color: var(--on-inverse);
+    }
+  }
+
+  .has-selection .split-marker:not(.selected) {
+    opacity: 0.5;
   }
 
   .endpoint-marker {

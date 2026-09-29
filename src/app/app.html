@@ -37,8 +37,26 @@
   </aside>
 
   <div class="results">
-    @if (store.estimate()) {
-      <app-estimate-summary />
+    @if (store.profile()) {
+      <!-- The route stays on screen while the reference race is missing or being fixed. -->
+      @if (store.estimate()) {
+        <app-estimate-summary />
+      } @else {
+        <section class="pending" aria-labelledby="pending-heading" aria-live="polite">
+          <h2 id="pending-heading" class="heading" i18n>Falta a prova de referência</h2>
+          @if (store.vdotIssue()) {
+            <p class="body muted" i18n>
+              O tempo informado não é plausível para a distância. Corrija a prova de referência para
+              ver o tempo estimado e o pace de cada parcial.
+            </p>
+          } @else {
+            <p class="body muted" i18n>
+              Escolha a distância e informe o tempo de uma prova plana recente para ver o tempo
+              estimado e o pace de cada parcial.
+            </p>
+          }
+        </section>
+      }
       @defer (on viewport) {
         <app-elevation-chart />
       } @placeholder {
@@ -49,7 +67,16 @@
       } @placeholder {
         <div class="placeholder map-placeholder"></div>
       }
-      <app-splits-table />
+      @if (store.estimate()) {
+        <app-splits-table />
+      }
+    } @else if (store.rawRoute()) {
+      <section class="pending" aria-labelledby="pending-heading" aria-live="polite">
+        <h2 id="pending-heading" class="heading" i18n>Sem altimetria ainda</h2>
+        <p class="body muted" i18n>
+          A elevação do percurso ainda não está disponível. Veja a fonte da elevação ao lado.
+        </p>
+      </section>
     } @else {
       <section class="empty" aria-labelledby="empty-heading">
         <h1 id="empty-heading" class="display-l" i18n>Planeje o pace da prova.</h1>

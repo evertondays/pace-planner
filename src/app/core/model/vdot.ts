@@ -19,6 +19,22 @@ export function vo2maxFraction(timeMin: number): number {
   );
 }
 
+/**
+ * Plausible VDOT range. The men's world records from 5 km to the marathon sit at
+ * about 85.5, so anything above the maximum is a typo in the time or distance.
+ * Below the minimum (around 5 km in 43 min) the effort is closer to walking,
+ * where the running equations no longer apply.
+ */
+export const VDOT_RANGE = { min: 20, max: 88 } as const;
+
+export type VdotIssue = 'too-low' | 'too-high';
+
+export function checkVdot(vdot: number): VdotIssue | null {
+  if (vdot < VDOT_RANGE.min) return 'too-low';
+  if (vdot > VDOT_RANGE.max) return 'too-high';
+  return null;
+}
+
 export function calculateVdot(distanceM: number, timeMin: number): number {
   return oxygenCost(distanceM / timeMin) / vo2maxFraction(timeMin);
 }

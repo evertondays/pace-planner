@@ -14,7 +14,7 @@ import { GridComponent, MarkAreaComponent, TooltipComponent } from 'echarts/comp
 import * as echarts from 'echarts/core';
 import { CanvasRenderer } from 'echarts/renderers';
 import type { EChartsCoreOption } from 'echarts/core';
-import { Estimate } from '../../core/model/types';
+import { Estimate, Split } from '../../core/model/types';
 import { DistanceUnit, UNIT_LENGTH_M } from '../../core/model/units';
 import { ProfilePoint } from '../../core/route/types';
 import { formatDuration, formatNumber, formatPace } from '../../shared/formatters';
@@ -98,7 +98,8 @@ export class ElevationChart {
       const selectedSplit = this.store.selectedSplit();
       const unit = this.preferences.unit();
       this.theme.theme(); // re-read the tokens when the theme changes
-      if (!this.ready() || !this.chart || !profile || !estimate) return;
+      // Without an estimate (reference race missing) the chart shows the elevation alone.
+      if (!this.ready() || !this.chart || !profile) return;
 
       const colors = readThemeColors(this.host().nativeElement);
       const option = buildOption(profile.points, estimate, selectedSplit, unit, colors);
@@ -109,7 +110,7 @@ export class ElevationChart {
 
 function buildOption(
   points: ProfilePoint[],
-  estimate: Estimate,
+  estimate: Estimate | null,
   selectedSplit: number | null,
   unit: DistanceUnit,
   c: ThemeColors,
@@ -118,20 +119,9 @@ function buildOption(
   // so ticks land on round values either way.
   const unitM = UNIT_LENGTH_M[unit];
   const perUnit = (paceSPerKm: number) => (paceSPerKm * unitM) / 1000;
-  const splits = estimate.splits;
+  const splits = estimate?.splits ?? [];
   const total = (points[points.length - 1]?.distanceM ?? 0) / unitM;
   const elevation = points.map((p) => [p.distanceM / unitM, p.elevationM]);
-
-  // Step line: each split holds its pace from its start to the next start.
-  const paceSteps = splits.map((s) => [s.startM / unitM, perUnit(s.paceSPerKm)]);
-  paceSteps.push([total, perUnit(splits[splits.length - 1].paceSPerKm)]);
-  // Bounds aligned to the tick interval, so the first and last labels do not overlap.
-  const paces = splits.map((s) => perUnit(s.paceSPerKm));
-  const paceRange = Math.max(...paces) - Math.min(...paces);
-  const paceInterval = paceRange > 120 ? 60 : paceRange > 50 ? 30 : paceRange > 20 ? 15 : 5;
-  const paceMin = Math.floor((Math.min(...paces) - 5) / paceInterval) * paceInterval;
-  const paceMax = Math.ceil((Math.max(...paces) + 5) / paceInterval) * paceInterval;
-  const unitUpper = unit.toUpperCase();
 
   const axisLabel = { color: c.inkSubtle, fontFamily: MONO, fontSize: 11 };
   const axisName = {
@@ -141,6 +131,7 @@ function buildOption(
     fontWeight: 600,
   };
   const selected = selectedSplit ? splits[selectedSplit - 1] : undefined;
+  const pace = splits.length > 0 ? paceSeries(splits, total, unit, selected, c) : null;
 
   return {
     animationDuration: 200,
@@ -164,7 +155,7 @@ function buildOption(
         return [
           `${unit} ${formatNumber(x, 2)}`,
           elevationM === undefined ? '' : `${formatNumber(elevationM)} m`,
-          `${formatPace(split.paceSPerKm, unit)} /${unit}`,
+          split ? `${formatPace(split.paceSPerKm, unit)} /${unit}` : '',
         ]
           .filter(Boolean)
           .join('<br>');
@@ -189,20 +180,22 @@ function buildOption(
         axisLabel: { ...axisLabel, formatter: (v: number) => formatNumber(v) },
         splitLine: { lineStyle: { color: c.line } },
       },
-      {
-        type: 'value',
-        name: $localize`PACE (MIN/${unitUpper}:unit:)`,
-        // The axis is inverted (faster on top), so its start is the top.
-        nameLocation: 'start',
-        nameTextStyle: { ...axisName, align: 'right' },
-        inverse: true,
-        min: paceMin,
-        max: paceMax,
-        interval: paceInterval,
-        // Values are already seconds per unit: format as plain m:ss.
-        axisLabel: { ...axisLabel, formatter: (v: number) => formatDuration(v) },
-        splitLine: { show: false },
-      },
+      ...(pace
+        ? [
+            {
+              type: 'value',
+              name: $localize`PACE (MIN/${unit.toUpperCase()}:unit:)`,
+              // The axis is inverted (faster on top), so its start is the top.
+              nameLocation: 'start',
+              nameTextStyle: { ...axisName, align: 'right' },
+              inverse: true,
+              ...pace.bounds,
+              // Values are already seconds per unit: format as plain m:ss.
+              axisLabel: { ...axisLabel, formatter: (v: number) => formatDuration(v) },
+              splitLine: { show: false },
+            },
+          ]
+        : []),
     ],
     series: [
       {
@@ -214,27 +207,56 @@ function buildOption(
         areaStyle: { color: c.surfaceStrong, opacity: 1 },
         emphasis: { disabled: true },
       },
-      {
-        type: 'line',
-        data: paceSteps,
-        yAxisIndex: 1,
-        step: 'end',
-        showSymbol: false,
-        lineStyle: { color: c.ink, width: 2 },
-        emphasis: { disabled: true },
-        markArea: selected
-          ? {
-              silent: true,
-              itemStyle: { color: c.ink, opacity: 0.12 },
-              data: [
-                [
-                  { xAxis: selected.startM / unitM },
-                  { xAxis: (selected.startM + selected.distanceM) / unitM },
-                ],
-              ],
-            }
-          : undefined,
-      },
+      ...(pace ? [pace.series] : []),
     ],
   };
+}
+
+/** Pace step line on a second, inverted axis, with the selected split marked. */
+function paceSeries(
+  splits: Split[],
+  total: number,
+  unit: DistanceUnit,
+  selected: Split | undefined,
+  c: ThemeColors,
+) {
+  const unitM = UNIT_LENGTH_M[unit];
+  const perUnit = (paceSPerKm: number) => (paceSPerKm * unitM) / 1000;
+
+  // Step line: each split holds its pace from its start to the next start.
+  const steps = splits.map((s) => [s.startM / unitM, perUnit(s.paceSPerKm)]);
+  steps.push([total, perUnit(splits[splits.length - 1].paceSPerKm)]);
+
+  // Bounds aligned to the tick interval, so the first and last labels do not overlap.
+  const paces = splits.map((s) => perUnit(s.paceSPerKm));
+  const range = Math.max(...paces) - Math.min(...paces);
+  const interval = range > 120 ? 60 : range > 50 ? 30 : range > 20 ? 15 : 5;
+  const bounds = {
+    min: Math.floor((Math.min(...paces) - 5) / interval) * interval,
+    max: Math.ceil((Math.max(...paces) + 5) / interval) * interval,
+    interval,
+  };
+
+  const series = {
+    type: 'line',
+    data: steps,
+    yAxisIndex: 1,
+    step: 'end',
+    showSymbol: false,
+    lineStyle: { color: c.ink, width: 2 },
+    emphasis: { disabled: true },
+    markArea: selected
+      ? {
+          silent: true,
+          itemStyle: { color: c.ink, opacity: 0.12 },
+          data: [
+            [
+              { xAxis: selected.startM / unitM },
+              { xAxis: (selected.startM + selected.distanceM) / unitM },
+            ],
+          ],
+        }
+      : undefined,
+  };
+  return { bounds, series };
 }

@@ -6,9 +6,11 @@ import {
   formatPace,
   formatSignedDuration,
   formatSignedPace,
+  formatTimeDigits,
   parseDecimal,
   parseDuration,
   setNumberLocale,
+  timeDigits,
 } from './formatters';
 
 describe('formatters', () => {
@@ -54,6 +56,25 @@ describe('formatters', () => {
     expect(formatDecimal(21.0975)).toBe('21,0975');
     expect(formatDecimal(10)).toBe('10');
     expect(formatDecimal(1000.5)).toBe('1000,5');
+  });
+
+  it('masks time digits like a stopwatch', () => {
+    expect(['1', '13', '130', '1300', '13000'].map(formatTimeDigits)).toEqual([
+      '1',
+      '13',
+      '1:30',
+      '13:00',
+      '1:30:00',
+    ]);
+    expect(formatTimeDigits('103000')).toBe('10:30:00');
+    expect(formatTimeDigits('')).toBe('');
+  });
+
+  it('extracts time digits from typed or pasted text', () => {
+    expect(timeDigits('01:30:00')).toBe('13000');
+    expect(timeDigits('42m30s')).toBe('4230');
+    expect(timeDigits('1234567')).toBe('123456');
+    expect(timeDigits('0:00')).toBe('');
   });
 
   it('parses h:mm:ss and mm:ss', () => {

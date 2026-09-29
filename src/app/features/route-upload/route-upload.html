@@ -28,15 +28,22 @@
           </dd>
         </div>
       </dl>
-      <label class="link-button small">
-        <span i18n>Trocar arquivo</span>
-        <input
-          class="visually-hidden"
-          type="file"
-          accept=".gpx,application/gpx+xml"
-          (change)="onFileSelected($event)"
-        />
-      </label>
+      <div class="route-actions">
+        <label class="link-button small with-icon">
+          <app-icon name="upload" [size]="14" />
+          <span i18n>Trocar arquivo</span>
+          <input
+            class="visually-hidden"
+            type="file"
+            accept=".gpx,application/gpx+xml"
+            (change)="onFileSelected($event)"
+          />
+        </label>
+        <button type="button" class="link-button small with-icon" (click)="store.clearRoute()">
+          <app-icon name="x" [size]="14" />
+          <span i18n>Remover arquivo</span>
+        </button>
+      </div>
     </div>
 
     <div class="field">
