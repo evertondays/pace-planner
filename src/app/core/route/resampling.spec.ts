@@ -7,6 +7,11 @@ describe('resampling', () => {
     expect(gridDistancesM(60, 20)).toEqual([0, 20, 40, 60]);
   });
 
+  it('merges a remainder under 1 m into the last step', () => {
+    expect(gridDistancesM(60.0001, 20)).toEqual([0, 20, 40, 60.0001]);
+    expect(gridDistancesM(1000.4, 20).slice(-2)).toEqual([980, 1000.4]);
+  });
+
   it('interpolates linearly and clamps outside the range', () => {
     expect(interpolateSeries([0, 10, 20], [0, 100, 50], [-5, 5, 10, 15, 25])).toEqual([
       0, 50, 100, 75, 50,

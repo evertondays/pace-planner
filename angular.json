@@ -15,6 +15,9 @@
       },
       "root": "",
       "sourceRoot": "src",
+      "i18n": {
+        "sourceLocale": "pt"
+      },
       "prefix": "app",
       "architect": {
         "build": {
@@ -29,7 +32,9 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.scss"]
+            "styles": ["node_modules/leaflet/dist/leaflet.css", "src/styles.scss"],
+            "polyfills": ["@angular/localize/init"],
+            "allowedCommonJsDependencies": ["leaflet"]
           },
           "configurations": {
             "production": {

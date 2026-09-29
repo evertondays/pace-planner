@@ -3,11 +3,13 @@ import { GpsPoint, GridPoint, RouteGrid } from './types';
 
 /**
  * Distances from 0 to `totalM` every `stepM`, always ending at `totalM`.
- * The last step may be shorter (e.g. the final 17.5 m of a half marathon).
+ * The last step may be shorter (e.g. the final 17.5 m of a half marathon);
+ * a remainder under 1 m is merged into the previous step instead.
  */
 export function gridDistancesM(totalM: number, stepM: number): number[] {
+  const minRemainderM = Math.min(1, stepM / 2);
   const distancesM: number[] = [];
-  for (let d = 0; d < totalM - 1e-6; d += stepM) distancesM.push(d);
+  for (let d = 0; d === 0 || d < totalM - minRemainderM; d += stepM) distancesM.push(d);
   distancesM.push(totalM);
   return distancesM;
 }

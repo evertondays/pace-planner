@@ -18,16 +18,35 @@ export function estimate(
   segments: Segment[],
   model: GradeCostModel,
 ): Estimate {
-  const referenceTimeMin = reference.timeS / 60;
-  const vdot = calculateVdot(reference.distanceM, referenceTimeMin);
+  const vdot = calculateVdot(reference.distanceM, reference.timeS / 60);
   const totalDistanceM = segments.reduce((sum, s) => sum + s.distanceM, 0);
   const equivalentDistanceM = segments.reduce(
     (sum, s) => sum + s.distanceM * model.costMultiplier(s.grade),
     0,
   );
+  const solution = solveFlatEffort(reference, vdot, equivalentDistanceM);
 
+  return {
+    vdot,
+    totalTimeS: solution.timeS,
+    equivalentDistanceM,
+    equivalentPaceSPerKm: 60_000 / solution.flatSpeedMPerMin,
+    averagePaceSPerKm: solution.timeS / (totalDistanceM / 1000),
+    iterations: solution.iterations,
+    converged: solution.converged,
+    splits: groupByKm(segments, solution.flatSpeedMPerMin, model),
+  };
+}
+
+/** Finish time for the same effort on a flat course of the given distance. */
+export function predictFlatTimeS(reference: ReferenceRace, distanceM: number): number {
+  const vdot = calculateVdot(reference.distanceM, reference.timeS / 60);
+  return solveFlatEffort(reference, vdot, distanceM).timeS;
+}
+
+function solveFlatEffort(reference: ReferenceRace, vdot: number, equivalentDistanceM: number) {
   // Riegel seed: t = tRef * (d / dRef)^1.06
-  let timeMin = referenceTimeMin * Math.pow(equivalentDistanceM / reference.distanceM, 1.06);
+  let timeMin = (reference.timeS / 60) * Math.pow(equivalentDistanceM / reference.distanceM, 1.06);
   let flatSpeedMPerMin = 0;
   let iterations = 0;
   let converged = false;
@@ -40,15 +59,5 @@ export function estimate(
     iterations++;
   }
 
-  const totalTimeS = timeMin * 60;
-  return {
-    vdot,
-    totalTimeS,
-    equivalentDistanceM,
-    equivalentPaceSPerKm: 60_000 / flatSpeedMPerMin,
-    averagePaceSPerKm: totalTimeS / (totalDistanceM / 1000),
-    iterations,
-    converged,
-    splits: groupByKm(segments, flatSpeedMPerMin, model),
-  };
+  return { timeS: timeMin * 60, flatSpeedMPerMin, iterations, converged };
 }

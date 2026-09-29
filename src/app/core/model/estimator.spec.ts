@@ -1,5 +1,5 @@
 import { buildSegments, flatRoute } from '../../../testing/segment-builder';
-import { estimate } from './estimator';
+import { estimate, predictFlatTimeS } from './estimator';
 import { createGradeCostModel, DEFAULT_MODEL_CONFIG } from './grade-cost';
 import { ReferenceRace } from './types';
 import { calculateVdot } from './vdot';
@@ -26,6 +26,13 @@ describe('estimate', () => {
     // Daniels' tables put a 40:00 10 km at roughly 1:28-1:29 for the half.
     expect(result.totalTimeS).toBeGreaterThan(87 * 60);
     expect(result.totalTimeS).toBeLessThan(90 * 60);
+  });
+
+  it('predicts the same flat time as a flat route estimate', () => {
+    const reference: ReferenceRace = { distanceM: 10_000, timeS: 2400 };
+    const flat = estimate(reference, flatRoute(HALF_MARATHON_M), model);
+
+    expect(predictFlatTimeS(reference, HALF_MARATHON_M)).toBeCloseTo(flat.totalTimeS, 6);
   });
 
   it('is slower than flat on a symmetric out-and-back', () => {
