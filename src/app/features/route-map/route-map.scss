@@ -1,7 +1,8 @@
 app-route-map {
   display: block;
 
-  h2 {
+  // Needs `.heading` in the selector to beat the global `.heading { margin: 0 }`.
+  h2.heading {
     margin-bottom: var(--space-6);
   }
 

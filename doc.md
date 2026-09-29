@@ -30,7 +30,7 @@ O MVP entrega o cálculo completo para um percurso carregado via GPX e uma prova
 - Mapa do percurso, gráfico de altimetria com pace sobreposto e tabela de splits.
 - Escolha do modelo de inclinação (Minetti com limite de descida ou curva conservadora).
 - Últimos cálculos salvos em `localStorage`.
-- Interface em português, inglês e espanhol (um build por idioma: raiz, `/en/` e `/es/`), com seletor no topo. Quem abre a raiz vai para o idioma salvo ou, na primeira visita, para o do navegador; links diretos para `/en/` e `/es/` abrem sempre nesse idioma.
+- Interface em português, inglês e espanhol, com seletor no topo. Um único build: as traduções são carregadas na inicialização (`loadTranslations`), e trocar de idioma salva a escolha e recarrega a página. Vale o idioma salvo ou, na primeira visita, o do navegador (inglês para os demais). Links antigos para `/en/` e `/es/` continuam funcionando.
 - Unidade de distância em km ou milhas, escolhida no topo: pace, distâncias, parciais, gráfico e marcadores do mapa seguem a preferência. Elevação continua em metros.
 
 **Fora do escopo (por enquanto)**

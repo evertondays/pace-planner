@@ -23,40 +23,6 @@
         var theme = localStorage.getItem('pace-planner:theme');
         if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
       } catch (e) {}
-
-      // Each language is its own build under a sub path (see APP_LOCALES and angular.json).
-      // The root (Portuguese) sends visitors to their saved language, or on a first visit to
-      // the browser language. A link straight to en/ or es/ always opens in that language.
-      try {
-        var subPaths = { pt: '', en: 'en/', es: 'es/' };
-        var current = (document.documentElement.lang || 'pt').slice(0, 2);
-        if (subPaths[current] !== '') throw 'explicit language';
-        var preferred = localStorage.getItem('pace-planner:locale');
-        if (!preferred) {
-          var languages = navigator.languages || [navigator.language || ''];
-          preferred = 'en';
-          for (var i = 0; i < languages.length; i++) {
-            var code = String(languages[i]).slice(0, 2).toLowerCase();
-            if (code in subPaths) {
-              preferred = code;
-              break;
-            }
-          }
-        }
-        // The guard stops a loop where a sub path serves the same build (e.g. ng serve).
-        var guardKey = 'pace-planner:locale-redirect';
-        if (
-          preferred in subPaths &&
-          preferred !== current &&
-          sessionStorage.getItem(guardKey) !== preferred
-        ) {
-          sessionStorage.setItem(guardKey, preferred);
-          var root = document.querySelector('base').getAttribute('href');
-          location.replace(root + subPaths[preferred] + location.search + location.hash);
-        } else if (preferred === current) {
-          sessionStorage.removeItem(guardKey);
-        }
-      } catch (e) {}
     </script>
   </head>
   <body>

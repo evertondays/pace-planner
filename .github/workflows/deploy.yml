@@ -24,6 +24,8 @@ jobs:
       - run: npm ci
       - run: npm run spell
       - run: npm run format:check
+      # The committed message catalog must match the source; the tests then check the translations.
+      - run: npx ng extract-i18n && git diff --exit-code src/locale/messages.json
       - run: npx ng test --watch=false
       - run: npx ng build --base-href /pace-planner/
       # GitHub Pages has no SPA fallback.

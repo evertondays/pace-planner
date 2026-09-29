@@ -15,6 +15,6 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideHttpClient(withFetch()),
-    provideAppInitializer(() => setNumberLocale(inject(PreferencesService).locale.numberLocale)),
+    provideAppInitializer(() => setNumberLocale(inject(PreferencesService).locale.bcp47)),
   ],
 };

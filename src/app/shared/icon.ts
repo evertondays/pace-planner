@@ -10,6 +10,8 @@ export type IconName =
   | 'info'
   | 'refresh'
   | 'chevron-down'
+  | 'check'
+  | 'globe'
   | 'x';
 
 /** Arrow for a time or pace difference: up when slower, down when faster, none when ~0. */
@@ -86,6 +88,16 @@ export function trendIcon(deltaS: number): IconName | null {
         }
         @case ('chevron-down') {
           <polyline points="6 9 12 15 18 9" />
+        }
+        @case ('check') {
+          <polyline points="20 6 9 17 4 12" />
+        }
+        @case ('globe') {
+          <circle cx="12" cy="12" r="10" />
+          <line x1="2" y1="12" x2="22" y2="12" />
+          <path
+            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+          />
         }
         @case ('x') {
           <line x1="18" y1="6" x2="6" y2="18" />

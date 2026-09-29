@@ -187,6 +187,30 @@ select {
   color: var(--negative);
 }
 
+// Numbered step of the input column: number in an inverse square, condensed title,
+// and a 2px rule to separate the steps.
+.step-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin: 0;
+  padding-top: var(--space-4);
+  border-top: 2px solid var(--ink);
+}
+
+.step-number {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  background: var(--inverse);
+  color: var(--on-inverse);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 500;
+}
+
 // Controls
 
 .btn {

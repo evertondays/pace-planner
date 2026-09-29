@@ -1,0 +1,42 @@
+<button
+  #trigger
+  type="button"
+  class="trigger"
+  aria-haspopup="menu"
+  aria-controls="language-menu"
+  [attr.aria-expanded]="open()"
+  aria-label="Idioma"
+  i18n-aria-label
+  (click)="toggle()"
+  (keydown)="onTriggerKeydown($event)"
+>
+  <app-icon class="globe" name="globe" [size]="16" />
+  <span>{{ preferences.locale.label }}</span>
+  <app-icon class="chevron" name="chevron-down" [size]="16" />
+</button>
+
+@if (open()) {
+  <div id="language-menu" class="menu" role="menu" aria-label="Idioma" i18n-aria-label>
+    @for (locale of locales; track locale.code; let i = $index) {
+      <button
+        #item
+        type="button"
+        role="menuitemradio"
+        class="item"
+        tabindex="-1"
+        [attr.lang]="locale.code"
+        [attr.aria-checked]="locale.code === preferences.locale.code"
+        (click)="select(locale.code)"
+        (keydown)="onMenuKeydown($event, i)"
+      >
+        <span class="name">{{ locale.name }}</span>
+        <span class="code">{{ locale.label }}</span>
+        <span class="check">
+          @if (locale.code === preferences.locale.code) {
+            <app-icon name="check" [size]="16" />
+          }
+        </span>
+      </button>
+    }
+  </div>
+}

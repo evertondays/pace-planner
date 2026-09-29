@@ -17,20 +17,7 @@
       "root": "",
       "sourceRoot": "src",
       "i18n": {
-        "sourceLocale": {
-          "code": "pt",
-          "subPath": ""
-        },
-        "locales": {
-          "en": {
-            "translation": "src/locale/messages.en.json",
-            "subPath": "en"
-          },
-          "es": {
-            "translation": "src/locale/messages.es.json",
-            "subPath": "es"
-          }
-        }
+        "sourceLocale": "pt"
       },
       "prefix": "app",
       "architect": {
@@ -44,6 +31,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "messages.*.json",
+                "input": "src/locale",
+                "output": "locale"
               }
             ],
             "styles": ["node_modules/leaflet/dist/leaflet.css", "src/styles.scss"],
@@ -64,20 +56,12 @@
                   "maximumError": "8kB"
                 }
               ],
-              "outputHashing": "all",
-              "localize": true,
-              "i18nMissingTranslation": "error"
+              "outputHashing": "all"
             },
             "development": {
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
-            },
-            "en": {
-              "localize": ["en"]
-            },
-            "es": {
-              "localize": ["es"]
             }
           },
           "defaultConfiguration": "production"
@@ -90,12 +74,6 @@
             },
             "development": {
               "buildTarget": "pace-planner:build:development"
-            },
-            "en": {
-              "buildTarget": "pace-planner:build:development,en"
-            },
-            "es": {
-              "buildTarget": "pace-planner:build:development,es"
             }
           },
           "defaultConfiguration": "development"

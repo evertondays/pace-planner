@@ -3,13 +3,14 @@ import { Meta } from '@angular/platform-browser';
 import { DistanceUnit } from './core/model/units';
 import { ElevationChart } from './features/elevation-chart/elevation-chart';
 import { EstimateSummary } from './features/estimate-summary/estimate-summary';
+import { LanguageMenu } from './features/language-menu/language-menu';
 import { ModelSettings } from './features/model-settings/model-settings';
 import { ReferenceRaceForm } from './features/reference-race/reference-race';
 import { RouteMap } from './features/route-map/route-map';
 import { RouteUpload } from './features/route-upload/route-upload';
 import { SplitsTable } from './features/splits-table/splits-table';
 import { Icon } from './shared/icon';
-import { APP_LOCALES, PreferencesService } from './shared/preferences.service';
+import { PreferencesService } from './shared/preferences.service';
 import { ThemeService } from './shared/theme.service';
 import { PlannerStore } from './state/planner.store';
 
@@ -17,6 +18,7 @@ import { PlannerStore } from './state/planner.store';
   selector: 'app-root',
   imports: [
     Icon,
+    LanguageMenu,
     RouteUpload,
     ReferenceRaceForm,
     ModelSettings,
@@ -33,7 +35,6 @@ export class App {
   protected readonly store = inject(PlannerStore);
   protected readonly theme = inject(ThemeService);
   protected readonly preferences = inject(PreferencesService);
-  protected readonly locales = APP_LOCALES;
   protected readonly units: DistanceUnit[] = ['km', 'mi'];
 
   constructor() {
