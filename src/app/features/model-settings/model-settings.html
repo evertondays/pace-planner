@@ -1,0 +1,102 @@
+<details class="settings">
+  <summary class="label">
+    <span i18n>Configurações avançadas</span>
+    <app-icon class="chevron" name="chevron-down" [size]="16" />
+  </summary>
+
+  <div class="content">
+    <div class="field">
+      <span class="label" id="mode-label" i18n>Descidas</span>
+      <div class="chips" role="radiogroup" aria-labelledby="mode-label">
+        <button
+          type="button"
+          class="chip"
+          role="radio"
+          [attr.aria-checked]="store.modelConfig().mode === 'minetti-floor'"
+          (click)="setMode('minetti-floor')"
+          i18n
+        >
+          Minetti com piso
+        </button>
+        <button
+          type="button"
+          class="chip"
+          role="radio"
+          [attr.aria-checked]="store.modelConfig().mode === 'conservative'"
+          (click)="setMode('conservative')"
+          i18n
+        >
+          Conservador
+        </button>
+      </div>
+    </div>
+
+    @if (store.modelConfig().mode === 'minetti-floor') {
+      <div class="field">
+        <label class="label" for="downhill-floor" i18n>Piso do multiplicador</label>
+        <input
+          id="downhill-floor"
+          class="input"
+          inputmode="decimal"
+          [value]="formatNumber(store.modelConfig().downhillFloor, 2)"
+          (change)="setDownhillFloor($any($event.target).value)"
+        />
+        <p class="small muted help" i18n>
+          Limite do ganho na descida. 0,85 = no máximo 18% mais rápido que no plano.
+        </p>
+      </div>
+    } @else {
+      <div class="field">
+        <label class="label" for="downhill-factor" i18n>Fator de descida</label>
+        <input
+          id="downhill-factor"
+          class="input"
+          inputmode="decimal"
+          [value]="formatNumber(store.modelConfig().downhillFactor, 2)"
+          (change)="setDownhillFactor($any($event.target).value)"
+        />
+        <p class="small muted help" i18n>
+          Fração do ganho de Minetti aproveitada na descida. 0,5 = metade.
+        </p>
+      </div>
+    }
+
+    <div class="row">
+      <div class="field">
+        <label class="label" for="smoothing" i18n>Suavização</label>
+        <select
+          id="smoothing"
+          class="input"
+          (change)="setSmoothingWindow($any($event.target).value)"
+        >
+          @for (option of smoothingOptionsM; track option) {
+            <option [value]="option" [selected]="option === store.profileConfig().smoothingWindowM">
+              {{ option === 0 ? '—' : option + ' m' }}
+            </option>
+          }
+        </select>
+      </div>
+      <div class="field">
+        <label class="label" for="grade-window" i18n>Janela da inclinação</label>
+        <select
+          id="grade-window"
+          class="input"
+          (change)="setGradeWindow($any($event.target).value)"
+        >
+          @for (option of gradeWindowOptionsM; track option) {
+            <option [value]="option" [selected]="option === store.profileConfig().gradeWindowM">
+              {{ option }} m
+            </option>
+          }
+        </select>
+      </div>
+    </div>
+    <p class="small muted help" i18n>
+      Compare o D+ com o oficial da prova: muito acima, aumente a suavização; muito abaixo, diminua.
+    </p>
+
+    <button type="button" class="link-button small reset" (click)="reset()" i18n>
+      Restaurar padrões
+    </button>
+  </div>
+</details>

@@ -1,1 +1,313 @@
-/* You can add global styles to this file, and also import other style files */
+// Design tokens and global styles. See design-system.md.
+
+@mixin light-tokens {
+  --bg: #ffffff;
+  --surface: #f4f4f4;
+  --surface-strong: #e6e6e6;
+  --line: #dadada;
+  --ink: #0a0a0a;
+  --ink-muted: #575757;
+  --ink-subtle: #6e6e6e;
+  --inverse: #0a0a0a;
+  --on-inverse: #ffffff;
+  color-scheme: light;
+}
+
+@mixin dark-tokens {
+  --bg: #0a0a0a;
+  --surface: #161616;
+  --surface-strong: #242424;
+  --line: #2e2e2e;
+  --ink: #f7f7f7;
+  --ink-muted: #a8a8a8;
+  --ink-subtle: #8c8c8c;
+  --inverse: #ffffff;
+  --on-inverse: #0a0a0a;
+  color-scheme: dark;
+}
+
+:root,
+[data-theme='light'] {
+  @include light-tokens;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    @include dark-tokens;
+  }
+}
+
+[data-theme='dark'] {
+  @include dark-tokens;
+}
+
+:root {
+  --font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --font-sans: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-10: 40px;
+  --space-16: 64px;
+  --space-24: 96px;
+  --radius-0: 0;
+  --radius-sm: 4px;
+  --radius-pill: 9999px;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --duration: 180ms;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 24px;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+}
+
+// Text styles
+
+.display-l,
+.heading {
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.display-l {
+  font-size: 64px;
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+}
+
+.heading {
+  font-size: 32px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.title {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.small {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.label {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+
+.metric-xl,
+.metric {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-xl {
+  font-size: 56px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.metric {
+  font-size: 20px;
+  line-height: 24px;
+  letter-spacing: -0.01em;
+}
+
+// Unit next to a number (space-1). Angular drops whitespace between elements.
+.metric-xl + .label,
+.metric + .label {
+  margin-left: var(--space-1);
+}
+
+.muted {
+  color: var(--ink-muted);
+}
+
+// Controls
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 48px;
+  padding: 0 var(--space-6);
+  border: 2px solid var(--inverse);
+  border-radius: var(--radius-0);
+  background: var(--inverse);
+  color: var(--on-inverse);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background var(--duration) var(--ease),
+    color var(--duration) var(--ease);
+
+  &:hover {
+    background: var(--bg);
+    color: var(--ink);
+    border-color: var(--ink);
+  }
+
+  &.secondary {
+    background: var(--bg);
+    color: var(--ink);
+    border: 1px solid var(--ink);
+
+    &:hover {
+      background: var(--surface-strong);
+    }
+  }
+}
+
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.input {
+  height: 48px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+
+  &:hover {
+    border-color: var(--ink-subtle);
+  }
+
+  &.invalid {
+    border: 2px solid var(--ink);
+  }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chip {
+  height: 32px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background var(--duration) var(--ease),
+    color var(--duration) var(--ease);
+
+  &:hover {
+    background: var(--surface-strong);
+  }
+
+  &:disabled {
+    border-style: dashed;
+    background: var(--bg);
+    color: var(--ink-subtle);
+    cursor: not-allowed;
+  }
+
+  &[aria-pressed='true'],
+  &[aria-checked='true'] {
+    background: var(--inverse);
+    border-color: var(--inverse);
+    color: var(--on-inverse);
+  }
+}
+
+// Messages: shape and text instead of color.
+.notice {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  font-size: 14px;
+  line-height: 20px;
+
+  &.error {
+    border: 2px solid var(--ink);
+  }
+
+  svg {
+    flex: none;
+    margin-top: 1px;
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

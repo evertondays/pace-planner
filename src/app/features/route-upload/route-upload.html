@@ -1,0 +1,139 @@
+<section class="block" aria-labelledby="route-heading">
+  <h2 id="route-heading" class="label" i18n>1 · Percurso</h2>
+
+  @if (store.rawRoute(); as route) {
+    <div class="route">
+      <p class="title route-name">{{ routeTitle() }}</p>
+      <dl class="route-metrics">
+        <div>
+          <dt class="label" i18n>Distância</dt>
+          <dd>
+            <span class="metric">{{ distanceKm() }}</span> <span class="label">km</span>
+          </dd>
+        </div>
+        <div>
+          <dt class="label">D+</dt>
+          <dd>
+            <span class="metric">{{ gainM() ?? '—' }}</span> <span class="label">m</span>
+          </dd>
+        </div>
+        <div>
+          <dt class="label">D−</dt>
+          <dd>
+            <span class="metric">{{ lossM() ?? '—' }}</span> <span class="label">m</span>
+          </dd>
+        </div>
+      </dl>
+      <label class="link-button small">
+        <span i18n>Trocar arquivo</span>
+        <input
+          class="visually-hidden"
+          type="file"
+          accept=".gpx,application/gpx+xml"
+          (change)="onFileSelected($event)"
+        />
+      </label>
+    </div>
+
+    <div class="field">
+      <label class="label" for="official-distance" i18n>Distância oficial (km)</label>
+      <input
+        id="official-distance"
+        class="input"
+        [class.invalid]="officialDistanceInvalid()"
+        inputmode="decimal"
+        placeholder="21,0975"
+        i18n-placeholder
+        [value]="officialDistanceKm()"
+        (change)="setOfficialDistance($any($event.target).value)"
+        [attr.aria-invalid]="officialDistanceInvalid()"
+        aria-describedby="official-distance-help"
+      />
+      <p id="official-distance-help" class="small muted help" i18n>
+        Opcional. Ajusta a distância do GPX à medida oficial.
+      </p>
+    </div>
+
+    <div class="field">
+      <span class="label" id="source-label" i18n>Fonte da elevação</span>
+      <div class="chips" role="radiogroup" aria-labelledby="source-label">
+        <button
+          type="button"
+          class="chip"
+          role="radio"
+          [attr.aria-checked]="store.elevationSource() === 'gpx'"
+          [disabled]="!store.routeHasElevation()"
+          (click)="setElevationSource('gpx')"
+        >
+          GPX
+        </button>
+        <button
+          type="button"
+          class="chip"
+          role="radio"
+          [attr.aria-checked]="store.elevationSource() === 'open-meteo'"
+          (click)="setElevationSource('open-meteo')"
+        >
+          Open-Meteo
+        </button>
+      </div>
+
+      @if (!store.routeHasElevation()) {
+        <p class="notice" role="status">
+          <app-icon name="info" [size]="18" />
+          <span i18n>Este GPX não tem elevação. Usando a Open-Meteo.</span>
+        </p>
+      }
+      @switch (store.apiElevation().status) {
+        @case ('loading') {
+          <p class="notice" role="status">
+            <app-icon name="refresh" [size]="18" />
+            <span i18n>Buscando elevação na Open-Meteo…</span>
+          </p>
+        }
+        @case ('error') {
+          @if (store.elevationSource() === 'open-meteo') {
+            <div class="notice error" role="alert">
+              <app-icon name="alert" [size]="18" />
+              <div>
+                @if (store.routeHasElevation()) {
+                  <p i18n>A Open-Meteo não respondeu. Mantendo a elevação do GPX.</p>
+                } @else {
+                  <p i18n>A Open-Meteo não respondeu. Sem elevação, não há estimativa.</p>
+                }
+                <button type="button" class="link-button" (click)="store.retryApiElevation()" i18n>
+                  Tentar de novo
+                </button>
+              </div>
+            </div>
+          }
+        }
+      }
+    </div>
+  } @else {
+    <label
+      class="dropzone"
+      [class.dragging]="dragging()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="dragging.set(false)"
+      (drop)="onDrop($event)"
+    >
+      <app-icon name="upload" />
+      <span class="title" i18n>Arraste o GPX da prova</span>
+      <span class="small muted" i18n>ou clique para escolher o arquivo</span>
+      <input
+        class="visually-hidden"
+        type="file"
+        accept=".gpx,application/gpx+xml"
+        (change)="onFileSelected($event)"
+      />
+    </label>
+  }
+
+  @if (errorMessage(); as message) {
+    <p class="notice error" role="alert">
+      <app-icon name="alert" [size]="18" />
+      <span>{{ message }}</span>
+    </p>
+  }
+</section>

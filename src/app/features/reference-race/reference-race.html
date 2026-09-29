@@ -1,0 +1,79 @@
+<section class="block" aria-labelledby="reference-heading">
+  <h2 id="reference-heading" class="label" i18n>2 · Prova de referência</h2>
+  <p class="small muted intro" i18n>Uma prova plana recente, de preferência dos últimos 3 meses.</p>
+
+  <div class="field">
+    <span class="label" id="distance-label" i18n>Distância</span>
+    <div class="chips" role="radiogroup" aria-labelledby="distance-label">
+      @for (preset of presets; track preset.distanceM) {
+        <button
+          type="button"
+          class="chip"
+          role="radio"
+          [attr.aria-checked]="choice() === preset.distanceM"
+          (click)="choose(preset.distanceM)"
+        >
+          {{ preset.label }}
+        </button>
+      }
+      <button
+        type="button"
+        class="chip"
+        role="radio"
+        [attr.aria-checked]="choice() === 'custom'"
+        (click)="choose('custom')"
+        i18n
+      >
+        Outra
+      </button>
+    </div>
+  </div>
+
+  @if (choice() === 'custom') {
+    <div class="field">
+      <label class="label" for="custom-distance" i18n>Distância (km)</label>
+      <input
+        id="custom-distance"
+        class="input"
+        [class.invalid]="customInvalid()"
+        inputmode="decimal"
+        [value]="customKm()"
+        (input)="applyCustomDistance($any($event.target).value, false)"
+        (change)="applyCustomDistance($any($event.target).value, true)"
+        [attr.aria-invalid]="customInvalid()"
+      />
+      @if (customInvalid()) {
+        <p class="small error-text" i18n>Use km com vírgula, por exemplo 15 ou 16,1.</p>
+      }
+    </div>
+  }
+
+  <div class="field">
+    <label class="label" for="reference-time" i18n>Tempo (h:mm:ss)</label>
+    <input
+      id="reference-time"
+      class="input time"
+      [class.invalid]="timeInvalid()"
+      inputmode="numeric"
+      placeholder="1:30:00"
+      autocomplete="off"
+      [value]="timeText()"
+      (input)="applyTime($any($event.target).value, false)"
+      (change)="applyTime($any($event.target).value, true)"
+      [attr.aria-invalid]="timeInvalid()"
+    />
+    @if (timeInvalid()) {
+      <p class="small error-text" i18n>Use h:mm:ss ou mm:ss, por exemplo 1:30:00 ou 42:30.</p>
+    }
+  </div>
+
+  @if (store.referenceOutOfRange()) {
+    <p class="notice error" role="status">
+      <app-icon name="alert" [size]="18" />
+      <span i18n>
+        As fórmulas foram ajustadas para provas de 1,5 km à maratona. Fora disso, a estimativa perde
+        precisão.
+      </span>
+    </p>
+  }
+</section>

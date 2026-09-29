@@ -1,0 +1,40 @@
+@if (view(); as v) {
+  <section class="summary" aria-labelledby="estimate-heading">
+    <div class="hero">
+      <h2 id="estimate-heading" class="label hero-label" i18n>Tempo estimado</h2>
+      <p class="metric-xl hero-time" aria-live="polite">{{ v.totalTime }}</p>
+      <p class="small hero-note">
+        <span class="arrow" aria-hidden="true">{{ v.arrow }}</span>
+        <span class="mono">{{ v.deltaVsFlat }}</span>
+        <span i18n>vs. {{ v.flatTime }} no plano, mesmo esforço</span>
+      </p>
+    </div>
+
+    <dl class="metrics">
+      <div>
+        <dt class="label" i18n>Pace médio</dt>
+        <dd>
+          <span class="metric">{{ v.averagePace }}</span> <span class="label">min/km</span>
+        </dd>
+      </div>
+      <div>
+        <dt class="label" i18n>Pace plano equivalente</dt>
+        <dd>
+          <span class="metric">{{ v.equivalentPace }}</span> <span class="label">min/km</span>
+        </dd>
+      </div>
+      <div>
+        <dt class="label">VDOT</dt>
+        <dd>
+          <span class="metric">{{ v.vdot }}</span>
+        </dd>
+      </div>
+      <div>
+        <dt class="label">D+ / D−</dt>
+        <dd>
+          <span class="metric">{{ v.gain }} / {{ v.loss }}</span> <span class="label">m</span>
+        </dd>
+      </div>
+    </dl>
+  </section>
+}

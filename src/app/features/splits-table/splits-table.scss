@@ -1,0 +1,98 @@
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+
+  p {
+    max-width: 68ch;
+    margin: 0;
+  }
+}
+
+.scroll {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  white-space: nowrap;
+}
+
+thead th {
+  padding-top: 0;
+  border-bottom-color: var(--ink);
+}
+
+th:first-child {
+  padding-left: var(--space-2);
+}
+
+td:last-child,
+th:last-child {
+  padding-right: var(--space-2);
+}
+
+.num {
+  text-align: right;
+}
+
+.metric {
+  font-size: 16px;
+}
+
+// Km column stays visible while the table scrolls sideways on small screens.
+th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--bg);
+}
+
+tbody tr {
+  cursor: pointer;
+
+  &:hover,
+  &:hover th:first-child {
+    background: var(--surface);
+  }
+
+  &:focus-visible {
+    outline-offset: -2px;
+  }
+
+  &.selected,
+  &.selected th:first-child {
+    background: var(--inverse);
+    color: var(--on-inverse);
+
+    .label {
+      color: var(--on-inverse);
+    }
+  }
+}
+
+.km {
+  font-weight: 500;
+}
+
+.partial {
+  display: block;
+  font-size: 10px;
+  line-height: 12px;
+}
+
+.arrow {
+  display: inline-block;
+  width: 1.5em;
+  font-size: 10px;
+  vertical-align: 1px;
+}

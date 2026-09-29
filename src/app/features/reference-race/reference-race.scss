@@ -1,0 +1,38 @@
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+h2,
+.intro {
+  margin: 0;
+}
+
+.intro {
+  margin-top: calc(-1 * var(--space-4));
+}
+
+.time {
+  font-size: 20px;
+}
+
+.error-text {
+  display: flex;
+  gap: var(--space-1);
+  margin: 0;
+  font-weight: 600;
+
+  &::before {
+    content: '!';
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    border: 2px solid var(--ink);
+    font-size: 11px;
+    line-height: 1;
+  }
+}

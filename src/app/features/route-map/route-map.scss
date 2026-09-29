@@ -1,0 +1,93 @@
+app-route-map {
+  display: block;
+
+  h2 {
+    margin-bottom: var(--space-6);
+  }
+
+  .map {
+    height: 360px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    font-family: var(--font-sans);
+
+    @media (max-width: 720px) {
+      height: 280px;
+    }
+  }
+
+  // No hue: OSM tiles in grayscale, inverted in the dark theme.
+  .leaflet-tile-pane {
+    filter: grayscale(1) contrast(0.9) brightness(1.05);
+  }
+
+  .route-line {
+    stroke: var(--ink);
+    stroke-width: 3px;
+  }
+
+  .route-line-selected {
+    stroke: var(--ink);
+    stroke-width: 8px;
+    stroke-linecap: butt;
+  }
+
+  .km-marker {
+    display: grid;
+    place-items: center;
+    background: var(--bg);
+    border: 1px solid var(--ink);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .endpoint-marker {
+    border: 2px solid var(--ink);
+    background: var(--bg);
+
+    &.finish {
+      background: var(--ink);
+    }
+  }
+
+  .leaflet-control-attribution,
+  .leaflet-control-zoom a {
+    background: var(--bg);
+    color: var(--ink-muted);
+  }
+
+  .leaflet-control-attribution a {
+    color: var(--ink);
+  }
+
+  .leaflet-bar {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-0);
+    box-shadow: none;
+
+    a {
+      border-radius: var(--radius-0) !important;
+      border-bottom-color: var(--line);
+      color: var(--ink);
+    }
+  }
+}
+
+@mixin dark-tiles {
+  app-route-map .leaflet-tile-pane {
+    filter: grayscale(1) invert(1) brightness(0.9) contrast(0.9);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    @include dark-tiles;
+  }
+}
+
+[data-theme='dark'] {
+  @include dark-tiles;
+}
