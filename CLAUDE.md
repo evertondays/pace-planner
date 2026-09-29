@@ -27,5 +27,7 @@ Node 24 (Angular 22 requires >= 22.22.3), tests with Vitest via `ng test`.
 - Use the domain glossary in `doc.md` (route, referenceRace, grade, segment, kmSplit...).
 - `src/app/core/` is plain TypeScript with no Angular imports, except `core/elevation/`
   (HTTP client). Keep it pure and unit-tested.
-- UI: only the neutral tokens from `design-system.md` (no hue), lines instead of shadows,
-  square corners, numbers in `--font-mono`. States are shown by shape and text, never color.
+- UI: tokens from `design-system.md`, lines instead of shadows, square corners, numbers in
+  `--font-mono`. The only hues are `--positive`/`--negative` (classes `.tone-positive` and
+  `.tone-negative`), for data meaning only: downhill/faster = positive, uphill/slower = negative,
+  always paired with a sign or arrow. UI states (errors, validation) stay neutral.

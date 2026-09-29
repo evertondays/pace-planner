@@ -7,21 +7,31 @@ Referências: a leitura de dados da **Suunto** (métricas grandes, interface sil
 ## Princípios
 
 1. **O número é o herói.** Pace, tempo e distância são o conteúdo mais importante da tela. Aparecem em `metric-xl`, cor `ink`, com a unidade ao lado em `label` e `ink-muted`.
-2. **Contraste é o acento.** Não existe cor de marca. O destaque é feito invertendo o bloco (`inverse` + `on-inverse`). Um bloco invertido grande por tela; se tudo é destaque, nada é.
+2. **Contraste é o acento.** Não existe cor de marca. O destaque é feito invertendo o bloco (`inverse` + `on-inverse`). Um bloco invertido grande por tela; se tudo é destaque, nada é. A única exceção de matiz são as cores semânticas `positive` (verde) e `negative` (vermelho), reservadas para o significado de um dado, nunca para destaque ou decoração.
 3. **Linhas, não sombras.** Profundidade vem de `line` (1px) e da troca `bg` → `surface`. Sem sombras, sem gradientes, sem glassmorphism.
 4. **Velocidade na forma, calma na leitura.** Display condensado e itálico opcional para impacto; Inter regular e bem espaçada para todo texto que precisa ser lido.
 5. **Respiro generoso.** Seções separadas por `space-24` no desktop. Na dúvida, mais espaço, não mais conteúdo.
 
 ## Cor
 
-Nove tokens, todos neutros (sem matiz), em dois temas: **Claro** (padrão para conteúdo editorial, inscrições, blog) e **Escuro** (padrão para dashboards de treino, resultados ao vivo e páginas de evento à noite). O tema escuro não é um "inverso automático": `bg` escuro é `#0A0A0A`, não preto puro, para reduzir o smear em telas OLED.
+Nove tokens neutros (sem matiz) e quatro semânticos, em dois temas: **Claro** (padrão para conteúdo editorial, inscrições, blog) e **Escuro** (padrão para dashboards de treino, resultados ao vivo e páginas de evento à noite). O tema escuro não é um "inverso automático": `bg` escuro é `#0A0A0A`, não preto puro, para reduzir o smear em telas OLED.
 
 - Página: `bg`. Cards e faixas: `surface`. Hover/pressed e trilhos de gráfico: `surface-strong`.
 - Texto: `ink` (principal), `ink-muted` (apoio, unidades), `ink-subtle` (labels, metadados; só sobre `bg` e `surface`).
 - Destaque: `inverse` com texto `on-inverse` — botão primário, hero sem foto, card de "recorde pessoal", faixa de resultado.
 - Proporção de uso aproximada no tema claro: 70% `bg`/`surface`, 20% `ink`, 10% `inverse`.
 
-**Estados sem cor.** Como não há verde/vermelho, estados são comunicados por forma e texto: erro = borda `ink` de 2px + ícone + mensagem; sucesso = bloco `inverse` com ícone de check; melhora de pace = seta ▲/▼ + sinal (−0:08/km). Nunca dependa só de tom de cinza para diferenciar séries em gráficos: use tracejado vs. sólido, espessura e rótulo direto.
+**Cores semânticas.** Verde e vermelho dizem se um dado favorece ou pesa para o corredor, sempre do ponto de vista do esforço:
+
+- `negative` (vermelho): subida, pace mais lento que o plano, piora de tempo.
+- `positive` (verde): descida, pace mais rápido que o plano, melhora de tempo.
+- `positive-subtle` e `negative-subtle`: fundos e preenchimentos (faixas de gráfico, badges), com texto em `positive`/`negative` ou `ink` por cima.
+- Valores próximos de zero ficam em `ink`: uma inclinação de ±0,3% não é subida nem descida.
+- A cor nunca é a única pista: acompanhe sempre o sinal (+/−) ou a seta (▲/▼).
+- Nunca use em botões, links, títulos, ícones decorativos ou blocos `inverse`; sobre `inverse`, o texto volta a `on-inverse`.
+- No máximo uma coluna ou série colorida por componente, para o verde e o vermelho não disputarem com os números.
+
+**Estados sem cor.** Estados de interface continuam sem matiz, comunicados por forma e texto: erro = borda `ink` de 2px + ícone + mensagem; sucesso = bloco `inverse` com ícone de check. Verde e vermelho são para dados, não para validação de formulário. Nunca dependa só de tom de cinza para diferenciar séries em gráficos: use tracejado vs. sólido, espessura e rótulo direto.
 
 ## Tipografia
 
@@ -85,6 +95,17 @@ Use estes nomes como variáveis CSS (`--nome`). Fontes via Google Fonts: Barlow 
 | `inverse` | `#0A0A0A` | `#FFFFFF` | Blocos de impacto: botão primário, hero, faixa de resultado, card em destaque. Máximo um bloco invertido grande por tela. |
 | `on-inverse` | `#FFFFFF` | `#0A0A0A` | Texto e ícones sobre inverse. |
 
+### Semânticas
+
+Só para o significado de um dado (ver "Cores semânticas"). Contraste medido (WCAG) de `positive`/`negative` sobre `bg`, `surface` e o próprio `-subtle`: no mínimo 5.1:1 no claro e 6.1:1 no escuro.
+
+| Token | Claro | Escuro | Uso |
+|---|---|---|---|
+| `positive` | `#18743A` | `#4ADE80` | Texto e traços de dado favorável: descida, pace mais rápido que o plano, melhora. |
+| `positive-subtle` | `#E6F4EA` | `#10291A` | Fundo ou preenchimento de dado favorável (faixa de gráfico, badge). |
+| `negative` | `#B91C1C` | `#F87171` | Texto e traços de dado que pesa: subida, pace mais lento que o plano, piora. |
+| `negative-subtle` | `#FBE9E9` | `#2E1414` | Fundo ou preenchimento de dado que pesa. |
+
 ## Famílias
 
 | Chave | Stack |
@@ -144,6 +165,10 @@ Cantos retos por padrão (precisão, pista). Pílula só para elementos pequenos
   --ink-subtle: #6E6E6E;
   --inverse: #0A0A0A;
   --on-inverse: #FFFFFF;
+  --positive: #18743A;
+  --positive-subtle: #E6F4EA;
+  --negative: #B91C1C;
+  --negative-subtle: #FBE9E9;
 }
 [data-theme="dark"] {
   --bg: #0A0A0A;
@@ -155,6 +180,10 @@ Cantos retos por padrão (precisão, pista). Pílula só para elementos pequenos
   --ink-subtle: #8C8C8C;
   --inverse: #FFFFFF;
   --on-inverse: #0A0A0A;
+  --positive: #4ADE80;
+  --positive-subtle: #10291A;
+  --negative: #F87171;
+  --negative-subtle: #2E1414;
 }
 :root {
   --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;

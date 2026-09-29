@@ -43,7 +43,7 @@
             <td class="metric num">{{ row.elapsed }}</td>
             <td class="metric num">{{ row.gain }}</td>
             <td class="metric num">{{ row.loss }}</td>
-            <td class="metric num">{{ row.grade }}</td>
+            <td class="metric num" [class]="row.gradeTone">{{ row.grade }}</td>
           </tr>
         }
       </tbody>

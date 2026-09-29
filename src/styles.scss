@@ -10,6 +10,10 @@
   --ink-subtle: #6e6e6e;
   --inverse: #0a0a0a;
   --on-inverse: #ffffff;
+  --positive: #18743a;
+  --positive-subtle: #e6f4ea;
+  --negative: #b91c1c;
+  --negative-subtle: #fbe9e9;
   color-scheme: light;
 }
 
@@ -23,6 +27,10 @@
   --ink-subtle: #8c8c8c;
   --inverse: #ffffff;
   --on-inverse: #0a0a0a;
+  --positive: #4ade80;
+  --positive-subtle: #10291a;
+  --negative: #f87171;
+  --negative-subtle: #2e1414;
   color-scheme: dark;
 }
 
@@ -168,6 +176,15 @@ select {
 
 .muted {
   color: var(--ink-muted);
+}
+
+// Semantic data tones (design-system.md, "Cores semânticas"). Always pair with a sign or arrow.
+.tone-positive {
+  color: var(--positive);
+}
+
+.tone-negative {
+  color: var(--negative);
 }
 
 // Controls

@@ -74,7 +74,9 @@ tbody tr {
     background: var(--inverse);
     color: var(--on-inverse);
 
-    .label {
+    .label,
+    .tone-positive,
+    .tone-negative {
       color: var(--on-inverse);
     }
   }
