@@ -23,16 +23,84 @@ h2,
   margin: 0;
   font-weight: 600;
 
-  &::before {
-    content: '!';
-    display: inline-grid;
-    place-items: center;
+  app-icon {
     flex: none;
-    width: 18px;
-    height: 18px;
-    margin-top: 1px;
-    border: 2px solid var(--ink);
-    font-size: 11px;
-    line-height: 1;
+    margin-top: 2px;
   }
+}
+
+.fitness {
+  background: var(--surface);
+}
+
+.vdot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-6);
+
+  p {
+    margin: 0;
+  }
+}
+
+.predictions {
+  border-top: 1px solid var(--line);
+
+  summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-4) var(--space-6);
+    color: var(--ink);
+    cursor: pointer;
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+  }
+
+  &[open] .chevron {
+    transform: rotate(180deg);
+  }
+
+  > p {
+    margin: 0;
+    padding: 0 var(--space-6) var(--space-2);
+  }
+
+  table {
+    width: calc(100% - 2 * var(--space-6));
+    margin: 0 var(--space-6) var(--space-6);
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  thead th {
+    border-bottom-color: var(--ink);
+  }
+
+  .num {
+    text-align: right;
+  }
+
+  .metric {
+    font-size: 16px;
+  }
+
+  .reference th .label {
+    margin-left: var(--space-2);
+  }
+}
+
+.chevron {
+  transition: transform var(--duration) var(--ease);
 }

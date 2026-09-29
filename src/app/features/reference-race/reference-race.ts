@@ -1,21 +1,18 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { predictFlatTimeS } from '../../core/model/estimator';
 import {
   formatDecimal,
   formatDuration,
+  formatNumber,
+  formatPace,
   parseDecimal,
   parseDuration,
 } from '../../shared/formatters';
 import { Icon } from '../../shared/icon';
+import { RACE_DISTANCES } from '../../shared/race-distances';
 import { PlannerStore } from '../../state/planner.store';
 
 type DistanceChoice = number | 'custom';
-
-const PRESETS: { distanceM: number; label: string }[] = [
-  { distanceM: 5000, label: '5K' },
-  { distanceM: 10_000, label: '10K' },
-  { distanceM: 21_097.5, label: '21K' },
-  { distanceM: 42_195, label: '42K' },
-];
 
 @Component({
   selector: 'app-reference-race',
@@ -26,16 +23,36 @@ const PRESETS: { distanceM: number; label: string }[] = [
 })
 export class ReferenceRaceForm {
   protected readonly store = inject(PlannerStore);
-  protected readonly presets = PRESETS;
+  protected readonly presets = RACE_DISTANCES;
 
   private readonly initial = this.store.referenceRace();
   protected readonly choice = signal<DistanceChoice>(
-    PRESETS.find((p) => p.distanceM === this.initial.distanceM)?.distanceM ?? 'custom',
+    RACE_DISTANCES.find((p) => p.distanceM === this.initial.distanceM)?.distanceM ?? 'custom',
   );
   protected readonly customKm = signal(formatDecimal(this.initial.distanceM / 1000));
   protected readonly customInvalid = signal(false);
   protected readonly timeText = signal(formatDuration(this.initial.timeS));
   protected readonly timeInvalid = signal(false);
+
+  protected readonly vdot = computed(() => {
+    const vdot = this.store.vdot();
+    return vdot === null ? null : formatNumber(vdot, 1);
+  });
+
+  /** Flat-course times for the same VDOT at the common race distances. */
+  protected readonly predictions = computed(() => {
+    const reference = this.store.referenceRace();
+    if (this.store.vdot() === null) return [];
+    return RACE_DISTANCES.map(({ distanceM, label }) => {
+      const timeS = predictFlatTimeS(reference, distanceM);
+      return {
+        label,
+        time: formatDuration(timeS),
+        pace: formatPace(timeS / (distanceM / 1000)),
+        isReference: Math.abs(distanceM - reference.distanceM) < 1,
+      };
+    });
+  });
 
   protected choose(choice: DistanceChoice): void {
     this.choice.set(choice);

@@ -5,10 +5,12 @@ import {
   formatPace,
   formatSignedDuration,
 } from '../../shared/formatters';
+import { Icon, trendIcon } from '../../shared/icon';
 import { PlannerStore } from '../../state/planner.store';
 
 @Component({
   selector: 'app-estimate-summary',
+  imports: [Icon],
   templateUrl: './estimate-summary.html',
   styleUrl: './estimate-summary.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,7 +29,7 @@ export class EstimateSummary {
       totalTime: formatDuration(estimate.totalTimeS),
       flatTime: formatDuration(flatTimeS),
       deltaVsFlat: formatSignedDuration(deltaS),
-      arrow: deltaS >= 0.5 ? '▲' : deltaS <= -0.5 ? '▼' : '',
+      trend: trendIcon(deltaS),
       averagePace: formatPace(estimate.averagePaceSPerKm),
       equivalentPace: formatPace(estimate.equivalentPaceSPerKm),
       vdot: formatNumber(estimate.vdot, 1),

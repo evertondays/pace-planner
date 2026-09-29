@@ -2,8 +2,9 @@
   <div class="header">
     <h2 id="splits-heading" class="heading" i18n>Pace por km</h2>
     <p class="small muted" i18n>
-      Esforço constante: ▲ mais lento e ▼ mais rápido que o pace plano equivalente. Clique num km
-      para destacá-lo no mapa e no gráfico.
+      Esforço constante: <app-icon class="inline-icon" name="arrow-up" [size]="14" /> mais lento e
+      <app-icon class="inline-icon" name="arrow-down" [size]="14" /> mais rápido que o pace plano
+      equivalente. Clique num km para destacá-lo no mapa e no gráfico.
     </p>
   </div>
 
@@ -37,8 +38,12 @@
             </th>
             <td class="metric num">{{ row.pace }}</td>
             <td class="metric num delta">
-              <span class="arrow" aria-hidden="true">{{ row.arrow }}</span
-              >{{ row.deltaVsFlat }}
+              <span class="trend">
+                @if (row.trend) {
+                  <app-icon [name]="row.trend" [size]="14" />
+                }
+              </span>
+              {{ row.deltaVsFlat }}
             </td>
             <td class="metric num">{{ row.elapsed }}</td>
             <td class="metric num">{{ row.gain }}</td>

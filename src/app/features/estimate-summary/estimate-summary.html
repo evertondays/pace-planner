@@ -4,7 +4,9 @@
       <h2 id="estimate-heading" class="label hero-label" i18n>Tempo estimado</h2>
       <p class="metric-xl hero-time" aria-live="polite">{{ v.totalTime }}</p>
       <p class="small hero-note">
-        <span class="arrow" aria-hidden="true">{{ v.arrow }}</span>
+        @if (v.trend) {
+          <app-icon class="trend" [name]="v.trend" [size]="14" />
+        }
         <span class="mono">{{ v.deltaVsFlat }}</span>
         <span i18n>vs. {{ v.flatTime }} no plano, mesmo esforço</span>
       </p>

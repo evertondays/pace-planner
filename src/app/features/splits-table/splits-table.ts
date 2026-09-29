@@ -7,6 +7,7 @@ import {
   formatPace,
   formatSignedDuration,
 } from '../../shared/formatters';
+import { Icon, IconName, trendIcon } from '../../shared/icon';
 import { PlannerStore } from '../../state/planner.store';
 
 /** Below this, a km is neither uphill nor downhill and keeps the neutral ink. */
@@ -16,7 +17,7 @@ interface SplitRow {
   km: number;
   partialDistance: string | null;
   pace: string;
-  arrow: string;
+  trend: IconName | null;
   deltaVsFlat: string;
   elapsed: string;
   gain: string;
@@ -27,6 +28,7 @@ interface SplitRow {
 
 @Component({
   selector: 'app-splits-table',
+  imports: [Icon],
   templateUrl: './splits-table.html',
   styleUrl: './splits-table.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,7 +48,7 @@ export class SplitsTable {
         km: split.km,
         partialDistance: split.distanceM < 999 ? formatDistanceKm(split.distanceM, 2) : null,
         pace: formatPace(split.paceSPerKm),
-        arrow: deltaS >= 0.5 ? '▲' : deltaS <= -0.5 ? '▼' : '',
+        trend: trendIcon(deltaS),
         deltaVsFlat: formatSignedDuration(deltaS),
         elapsed: formatDuration(elapsedS),
         gain: formatNumber(split.gainM),

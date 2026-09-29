@@ -43,7 +43,10 @@
         [attr.aria-invalid]="customInvalid()"
       />
       @if (customInvalid()) {
-        <p class="small error-text" i18n>Use km com vírgula, por exemplo 15 ou 16,1.</p>
+        <p class="small error-text">
+          <app-icon name="alert" [size]="16" />
+          <span i18n>Use km com vírgula, por exemplo 15 ou 16,1.</span>
+        </p>
       }
     </div>
   }
@@ -63,9 +66,56 @@
       [attr.aria-invalid]="timeInvalid()"
     />
     @if (timeInvalid()) {
-      <p class="small error-text" i18n>Use h:mm:ss ou mm:ss, por exemplo 1:30:00 ou 42:30.</p>
+      <p class="small error-text">
+        <app-icon name="alert" [size]="16" />
+        <span i18n>Use h:mm:ss ou mm:ss, por exemplo 1:30:00 ou 42:30.</span>
+      </p>
     }
   </div>
+
+  @if (vdot(); as vdot) {
+    <div class="fitness">
+      <div class="vdot">
+        <span class="label" i18n>Seu VDOT</span>
+        <span class="metric-xl" aria-live="polite">{{ vdot }}</span>
+        <p class="small muted" i18n>
+          Índice de condicionamento de Jack Daniels, calculado pela prova de referência. Quanto
+          maior, mais rápido.
+        </p>
+      </div>
+
+      <details class="predictions">
+        <summary class="label">
+          <span i18n>Previsões para outras distâncias</span>
+          <app-icon class="chevron" name="chevron-down" [size]="16" />
+        </summary>
+        <p class="small muted" i18n>No plano, com o mesmo esforço (VDOT).</p>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col" class="label" i18n>Distância</th>
+              <th scope="col" class="label num" i18n>Tempo</th>
+              <th scope="col" class="label num" i18n>Pace</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of predictions(); track row.label) {
+              <tr [class.reference]="row.isReference">
+                <th scope="row" class="metric">
+                  {{ row.label }}
+                  @if (row.isReference) {
+                    <span class="label" i18n>sua prova</span>
+                  }
+                </th>
+                <td class="metric num">{{ row.time }}</td>
+                <td class="metric num">{{ row.pace }}<span class="label">/km</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </details>
+    </div>
+  }
 
   @if (store.referenceOutOfRange()) {
     <p class="notice error" role="status">

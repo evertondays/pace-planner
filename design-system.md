@@ -27,7 +27,7 @@ Nove tokens neutros (sem matiz) e quatro semânticos, em dois temas: **Claro** (
 - `positive` (verde): descida, pace mais rápido que o plano, melhora de tempo.
 - `positive-subtle` e `negative-subtle`: fundos e preenchimentos (faixas de gráfico, badges), com texto em `positive`/`negative` ou `ink` por cima.
 - Valores próximos de zero ficam em `ink`: uma inclinação de ±0,3% não é subida nem descida.
-- A cor nunca é a única pista: acompanhe sempre o sinal (+/−) ou a seta (▲/▼).
+- A cor nunca é a única pista: acompanhe sempre o sinal (+/−) ou o ícone de seta (`arrow-up` mais lento/piora, `arrow-down` mais rápido/melhora).
 - Nunca use em botões, links, títulos, ícones decorativos ou blocos `inverse`; sobre `inverse`, o texto volta a `on-inverse`.
 - No máximo uma coluna ou série colorida por componente, para o verde e o vermelho não disputarem com os números.
 
@@ -60,7 +60,7 @@ Composições recomendadas: hero com foto sangrando a tela e título `display-xl
 
 ## Iconografia
 
-Traço de 1.5px (2px abaixo de 20px), terminais retos, grid de 24px, sem preenchimento — no espírito de Lucide ou Phosphor Regular. Ícones sempre em `ink` ou `on-inverse`, nunca em cinza claro. Setas e chevrons são o motivo recorrente: indicam direção e ritmo.
+[Feather Icons](https://feathericons.com) (MIT): traço de 1.5px (2px abaixo de 20px), terminais e junções arredondados como no original, grid de 24px, sem preenchimento. Ícones sempre em `ink` ou `on-inverse`, nunca em cinza claro. Setas e chevrons são o motivo recorrente: indicam direção e ritmo. Setas de tendência são sempre ícones (`arrow-up`/`arrow-down`), nunca caracteres como ▲/▼, que mudam de forma e tamanho conforme a fonte.
 
 ## Fotografia
 

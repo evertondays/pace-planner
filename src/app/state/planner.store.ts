@@ -4,6 +4,7 @@ import { ElevationService } from '../core/elevation/elevation.service';
 import { estimate, predictFlatTimeS } from '../core/model/estimator';
 import { createGradeCostModel, DEFAULT_MODEL_CONFIG } from '../core/model/grade-cost';
 import { ModelConfig, ReferenceRace } from '../core/model/types';
+import { calculateVdot } from '../core/model/vdot';
 import { cumulativeDistancesM } from '../core/route/geo';
 import { parseGpx } from '../core/route/gpx-parser';
 import { buildProfile, DEFAULT_PROFILE_CONFIG, MIN_ROUTE_DISTANCE_M } from '../core/route/profile';
@@ -72,6 +73,14 @@ export class PlannerStore {
   });
 
   readonly gradeModel = computed(() => createGradeCostModel(this.modelConfig()));
+
+  /** Fitness from the reference race alone; available before any route is loaded. */
+  readonly vdot = computed(() => {
+    const reference = this.referenceRace();
+    return isValidReference(reference)
+      ? calculateVdot(reference.distanceM, reference.timeS / 60)
+      : null;
+  });
 
   readonly estimate = computed(() => {
     const profile = this.profile();

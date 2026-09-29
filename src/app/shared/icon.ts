@@ -1,9 +1,28 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
 export type IconName =
-  'upload' | 'sun' | 'moon' | 'alert' | 'info' | 'refresh' | 'chevron-down' | 'x';
+  | 'arrow-up'
+  | 'arrow-down'
+  | 'upload'
+  | 'sun'
+  | 'moon'
+  | 'alert'
+  | 'info'
+  | 'refresh'
+  | 'chevron-down'
+  | 'x';
 
-/** Outline icons on a 24px grid, in the spirit of Lucide (straight terminals). */
+/** Arrow for a time or pace difference: up when slower, down when faster, none when ~0. */
+export function trendIcon(deltaS: number): IconName | null {
+  if (deltaS >= 0.5) return 'arrow-up';
+  if (deltaS <= -0.5) return 'arrow-down';
+  return null;
+}
+
+/**
+ * Feather Icons (https://feathericons.com, MIT) on a 24px grid. Round caps are
+ * part of the set: dots such as the one in `info` are zero-length strokes.
+ */
 @Component({
   selector: 'app-icon',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -17,41 +36,60 @@ export type IconName =
       fill="none"
       stroke="currentColor"
       [attr.stroke-width]="strokeWidth()"
-      stroke-linecap="butt"
-      stroke-linejoin="miter"
+      stroke-linecap="round"
+      stroke-linejoin="round"
     >
       @switch (name()) {
+        @case ('arrow-up') {
+          <line x1="12" y1="19" x2="12" y2="5" />
+          <polyline points="5 12 12 5 19 12" />
+        }
+        @case ('arrow-down') {
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <polyline points="19 12 12 19 5 12" />
+        }
         @case ('upload') {
-          <path d="M21 15v6H3v-6" />
-          <path d="M17 8l-5-5-5 5" />
-          <path d="M12 3v12" />
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="17 8 12 3 7 8" />
+          <line x1="12" y1="3" x2="12" y2="15" />
         }
         @case ('sun') {
-          <circle cx="12" cy="12" r="4" />
-          <path
-            d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"
-          />
+          <circle cx="12" cy="12" r="5" />
+          <line x1="12" y1="1" x2="12" y2="3" />
+          <line x1="12" y1="21" x2="12" y2="23" />
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+          <line x1="1" y1="12" x2="3" y2="12" />
+          <line x1="21" y1="12" x2="23" y2="12" />
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
         }
         @case ('moon') {
-          <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z" />
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
         }
         @case ('alert') {
-          <path d="M12 3L2 21h20L12 3z" />
-          <path d="M12 10v5M12 17v2" />
+          <path
+            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+          />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
         }
         @case ('info') {
           <circle cx="12" cy="12" r="10" />
-          <path d="M12 11v6M12 7v2" />
+          <line x1="12" y1="16" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12.01" y2="8" />
         }
         @case ('refresh') {
-          <path d="M21 12a9 9 0 1 1-2.64-6.36L21 8" />
-          <path d="M21 3v5h-5" />
+          <polyline points="23 4 23 10 17 10" />
+          <polyline points="1 20 1 14 7 14" />
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
         }
         @case ('chevron-down') {
-          <path d="M6 9l6 6 6-6" />
+          <polyline points="6 9 12 15 18 9" />
         }
         @case ('x') {
-          <path d="M18 6L6 18M6 6l12 12" />
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
         }
       }
     </svg>

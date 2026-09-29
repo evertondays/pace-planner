@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { syntheticTrack, toGpx } from '../../testing/gpx-builder';
 import { ElevationService } from '../core/elevation/elevation.service';
+import { calculateVdot } from '../core/model/vdot';
 import { PlannerStore } from './planner.store';
 
 describe('PlannerStore', () => {
@@ -28,6 +29,16 @@ describe('PlannerStore', () => {
     expect(store.routeError()).toBeNull();
     expect(Math.abs(store.estimate()!.totalTimeS - 2400)).toBeLessThan(1);
     expect(store.estimate()!.splits.length).toBe(10);
+  });
+
+  it('exposes the VDOT before any route is loaded', () => {
+    const store = createStore();
+    store.referenceRace.set({ distanceM: 3000, timeS: 600 });
+
+    expect(store.rawRoute()).toBeNull();
+    expect(store.vdot()).toBeCloseTo(calculateVdot(3000, 10), 9);
+    store.referenceRace.set({ distanceM: 3000, timeS: 0 });
+    expect(store.vdot()).toBeNull();
   });
 
   it('rejects routes shorter than 500 m and invalid files', () => {

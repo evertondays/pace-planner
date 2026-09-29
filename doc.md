@@ -24,7 +24,8 @@ O MVP entrega o cálculo completo para um percurso carregado via GPX e uma prova
 - Upload de arquivo GPX (drag and drop ou seletor de arquivo).
 - Elevação a partir do próprio GPX, com opção de substituir pela Open-Meteo Elevation API.
 - Reamostragem e suavização configuráveis do perfil de elevação.
-- Entrada da prova de referência: distância (5 km, 10 km, 21,1 km, 42,2 km ou livre) e tempo.
+- Entrada da prova de referência: distância (3 km, 5 km, 10 km, 21,1 km, 42,2 km ou livre) e tempo. O 3 km entra por ser um teste de campo comum.
+- VDOT do corredor exibido logo após a prova de referência, com previsões no plano (tempo e pace) para 3 km, 5 km, 10 km, meia e maratona num bloco expansível.
 - Cálculo de VDOT, tempo estimado no percurso e pace alvo por km.
 - Mapa do percurso, gráfico de altimetria com pace sobreposto e tabela de splits.
 - Escolha do modelo de inclinação (Minetti com limite de descida ou curva conservadora).
@@ -364,7 +365,7 @@ O MVP é uma única tela: entradas numa coluna lateral e resultados no painel pr
 ### Fluxo
 
 1. O usuário arrasta o GPX ou escolhe o arquivo. O app mostra nome, distância e D+ detectados.
-2. Informa a prova de referência: seletor de distância (5 km, 10 km, 21,1 km, 42,2 km, outra) e tempo em h:mm:ss.
+2. Informa a prova de referência: seletor de distância (3 km, 5 km, 10 km, 21,1 km, 42,2 km, outra) e tempo em h:mm:ss. O app mostra o VDOT na hora e, ao expandir, as previsões no plano para as outras distâncias.
 3. Opcionalmente, informa a distância oficial da prova e troca a fonte de elevação para a Open-Meteo.
 4. O painel mostra a estimativa imediatamente.
 5. Em "Configurações avançadas", ajusta o modo de descida, o piso ou o fator, e as janelas de suavização.

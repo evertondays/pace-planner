@@ -92,9 +92,13 @@ tbody tr {
   line-height: 12px;
 }
 
-.arrow {
-  display: inline-block;
-  width: 1.5em;
-  font-size: 10px;
-  vertical-align: 1px;
+// Fixed-width slot keeps the times aligned whether or not there is an arrow.
+.trend {
+  display: inline-flex;
+  width: 18px;
+  vertical-align: -2px;
+}
+
+.inline-icon {
+  vertical-align: -2px;
 }
