@@ -15,8 +15,10 @@ import * as echarts from 'echarts/core';
 import { CanvasRenderer } from 'echarts/renderers';
 import type { EChartsCoreOption } from 'echarts/core';
 import { Estimate } from '../../core/model/types';
+import { DistanceUnit, UNIT_LENGTH_M } from '../../core/model/units';
 import { ProfilePoint } from '../../core/route/types';
-import { formatNumber, formatPace } from '../../shared/formatters';
+import { formatDuration, formatNumber, formatPace } from '../../shared/formatters';
+import { PreferencesService } from '../../shared/preferences.service';
 import { readThemeColors, ThemeColors } from '../../shared/theme-colors';
 import { ThemeService } from '../../shared/theme.service';
 import { PlannerStore } from '../../state/planner.store';
@@ -35,7 +37,7 @@ const SANS = 'Inter, system-ui, sans-serif';
         #host
         class="chart"
         role="img"
-        aria-label="Gráfico da elevação ao longo do percurso, com o pace alvo de cada km em degraus"
+        aria-label="Gráfico da elevação ao longo do percurso, com o pace alvo de cada parcial em degraus"
         i18n-aria-label
       ></div>
     </section>
@@ -58,6 +60,7 @@ const SANS = 'Inter, system-ui, sans-serif';
 export class ElevationChart {
   private readonly store = inject(PlannerStore);
   private readonly theme = inject(ThemeService);
+  private readonly preferences = inject(PreferencesService);
   private readonly host = viewChild.required<ElementRef<HTMLDivElement>>('host');
   private readonly ready = signal(false);
   private chart?: echarts.ECharts;
@@ -74,9 +77,10 @@ export class ElevationChart {
         const splits = this.store.estimate()?.splits ?? [];
         const point = [event.offsetX, event.offsetY];
         if (!chart.containPixel({ gridIndex: 0 }, point)) return;
-        const [xKm] = chart.convertFromPixel({ gridIndex: 0 }, point) as number[];
-        const km = Math.min(Math.floor(xKm) + 1, splits.length);
-        if (km >= 1) this.store.toggleKm(km);
+        // The x axis is in the user's unit, so each whole number is one split.
+        const [x] = chart.convertFromPixel({ gridIndex: 0 }, point) as number[];
+        const index = Math.min(Math.floor(x) + 1, splits.length);
+        if (index >= 1) this.store.toggleSplit(index);
       });
 
       const resizeObserver = new ResizeObserver(() => chart.resize());
@@ -91,14 +95,14 @@ export class ElevationChart {
     effect(() => {
       const profile = this.store.profile();
       const estimate = this.store.estimate();
-      const selectedKm = this.store.selectedKm();
+      const selectedSplit = this.store.selectedSplit();
+      const unit = this.preferences.unit();
       this.theme.theme(); // re-read the tokens when the theme changes
       if (!this.ready() || !this.chart || !profile || !estimate) return;
 
       const colors = readThemeColors(this.host().nativeElement);
-      this.chart.setOption(buildOption(profile.points, estimate, selectedKm, colors), {
-        notMerge: true,
-      });
+      const option = buildOption(profile.points, estimate, selectedSplit, unit, colors);
+      this.chart.setOption(option, { notMerge: true });
     });
   }
 }
@@ -106,19 +110,28 @@ export class ElevationChart {
 function buildOption(
   points: ProfilePoint[],
   estimate: Estimate,
-  selectedKm: number | null,
+  selectedSplit: number | null,
+  unit: DistanceUnit,
   c: ThemeColors,
 ): EChartsCoreOption {
+  // Both axes use the user's unit: distance in km or mi, pace in seconds per km or mi,
+  // so ticks land on round values either way.
+  const unitM = UNIT_LENGTH_M[unit];
+  const perUnit = (paceSPerKm: number) => (paceSPerKm * unitM) / 1000;
   const splits = estimate.splits;
-  const totalKm = (points[points.length - 1]?.distanceM ?? 0) / 1000;
-  const elevation = points.map((p) => [p.distanceM / 1000, p.elevationM]);
+  const total = (points[points.length - 1]?.distanceM ?? 0) / unitM;
+  const elevation = points.map((p) => [p.distanceM / unitM, p.elevationM]);
 
   // Step line: each split holds its pace from its start to the next start.
-  const paceSteps = splits.map((s) => [s.km - 1, s.paceSPerKm]);
-  paceSteps.push([totalKm, splits[splits.length - 1].paceSPerKm]);
-  const paces = splits.map((s) => s.paceSPerKm);
-  const paceMin = Math.floor((Math.min(...paces) - 10) / 5) * 5;
-  const paceMax = Math.ceil((Math.max(...paces) + 10) / 5) * 5;
+  const paceSteps = splits.map((s) => [s.startM / unitM, perUnit(s.paceSPerKm)]);
+  paceSteps.push([total, perUnit(splits[splits.length - 1].paceSPerKm)]);
+  // Bounds aligned to the tick interval, so the first and last labels do not overlap.
+  const paces = splits.map((s) => perUnit(s.paceSPerKm));
+  const paceRange = Math.max(...paces) - Math.min(...paces);
+  const paceInterval = paceRange > 120 ? 60 : paceRange > 50 ? 30 : paceRange > 20 ? 15 : 5;
+  const paceMin = Math.floor((Math.min(...paces) - 5) / paceInterval) * paceInterval;
+  const paceMax = Math.ceil((Math.max(...paces) + 5) / paceInterval) * paceInterval;
+  const unitUpper = unit.toUpperCase();
 
   const axisLabel = { color: c.inkSubtle, fontFamily: MONO, fontSize: 11 };
   const axisName = {
@@ -127,7 +140,7 @@ function buildOption(
     fontSize: 11,
     fontWeight: 600,
   };
-  const selected = selectedKm ? splits[selectedKm - 1] : undefined;
+  const selected = selectedSplit ? splits[selectedSplit - 1] : undefined;
 
   return {
     animationDuration: 200,
@@ -145,13 +158,13 @@ function buildOption(
       textStyle: { color: c.ink, fontFamily: MONO, fontSize: 12 },
       axisPointer: { type: 'line', lineStyle: { color: c.ink, width: 1 } },
       formatter: (params: { axisValue: number; seriesIndex: number; value: number[] }[]) => {
-        const xKm = params[0]?.axisValue ?? 0;
+        const x = params[0]?.axisValue ?? 0;
         const elevationM = params.find((p) => p.seriesIndex === 0)?.value[1];
-        const split = splits[Math.min(Math.floor(xKm), splits.length - 1)];
+        const split = splits[Math.min(Math.floor(x), splits.length - 1)];
         return [
-          `km ${formatNumber(xKm, 2)}`,
+          `${unit} ${formatNumber(x, 2)}`,
           elevationM === undefined ? '' : `${formatNumber(elevationM)} m`,
-          `${formatPace(split.paceSPerKm)} /km`,
+          `${formatPace(split.paceSPerKm, unit)} /${unit}`,
         ]
           .filter(Boolean)
           .join('<br>');
@@ -160,8 +173,8 @@ function buildOption(
     xAxis: {
       type: 'value',
       min: 0,
-      max: totalKm,
-      interval: totalKm > 25 ? 5 : totalKm > 12 ? 2 : 1,
+      max: total,
+      interval: total > 25 ? 5 : total > 12 ? 2 : 1,
       axisLine: { lineStyle: { color: c.ink } },
       axisTick: { lineStyle: { color: c.ink } },
       axisLabel: { ...axisLabel, formatter: (v: number) => formatNumber(v) },
@@ -178,14 +191,16 @@ function buildOption(
       },
       {
         type: 'value',
-        name: $localize`PACE (MIN/KM)`,
+        name: $localize`PACE (MIN/${unitUpper}:unit:)`,
         // The axis is inverted (faster on top), so its start is the top.
         nameLocation: 'start',
         nameTextStyle: { ...axisName, align: 'right' },
         inverse: true,
         min: paceMin,
         max: paceMax,
-        axisLabel: { ...axisLabel, formatter: (v: number) => formatPace(v) },
+        interval: paceInterval,
+        // Values are already seconds per unit: format as plain m:ss.
+        axisLabel: { ...axisLabel, formatter: (v: number) => formatDuration(v) },
         splitLine: { show: false },
       },
     ],
@@ -213,8 +228,8 @@ function buildOption(
               itemStyle: { color: c.ink, opacity: 0.12 },
               data: [
                 [
-                  { xAxis: selected.km - 1 },
-                  { xAxis: selected.km - 1 + selected.distanceM / 1000 },
+                  { xAxis: selected.startM / unitM },
+                  { xAxis: (selected.startM + selected.distanceM) / unitM },
                 ],
               ],
             }

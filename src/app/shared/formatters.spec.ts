@@ -1,15 +1,19 @@
 import {
   formatDecimal,
-  formatDistanceKm,
+  formatDistance,
   formatDuration,
   formatGrade,
   formatPace,
   formatSignedDuration,
+  formatSignedPace,
   parseDecimal,
   parseDuration,
+  setNumberLocale,
 } from './formatters';
 
 describe('formatters', () => {
+  afterEach(() => setNumberLocale('pt-BR'));
+
   it('formats durations with and without hours', () => {
     expect(formatDuration(5400)).toBe('1:30:00');
     expect(formatDuration(1245)).toBe('20:45');
@@ -21,6 +25,18 @@ describe('formatters', () => {
     expect(formatPace(299.6)).toBe('5:00');
   });
 
+  it('formats pace and distance in miles', () => {
+    expect(formatPace(256, 'mi')).toBe('6:52');
+    expect(formatSignedPace(10, 'mi')).toBe('+0:16');
+    expect(formatDistance(21097.5, 'mi')).toBe('13,1');
+  });
+
+  it('follows the number locale', () => {
+    setNumberLocale('en');
+    expect(formatDistance(21097.5)).toBe('21.1');
+    expect(formatGrade(0.023)).toBe('+2.3%');
+  });
+
   it('formats signed durations', () => {
     expect(formatSignedDuration(12)).toBe('+0:12');
     expect(formatSignedDuration(-65)).toBe('−1:05');
@@ -28,7 +44,7 @@ describe('formatters', () => {
   });
 
   it('formats distance and grade in pt-BR', () => {
-    expect(formatDistanceKm(21097.5)).toBe('21,1');
+    expect(formatDistance(21097.5)).toBe('21,1');
     expect(formatGrade(0.023)).toBe('+2,3%');
     expect(formatGrade(-0.01)).toBe('−1,0%');
     expect(formatGrade(-0.0001)).toBe('0,0%');

@@ -60,7 +60,6 @@ export function buildSegments(
       startM,
       distanceM: points[k + 1].distanceM - startM,
       grade: Math.max(-MAX_ABS_GRADE, Math.min(MAX_ABS_GRADE, grade)),
-      kmIndex: Math.floor(startM / 1000 + 1e-9),
     });
   }
   return segments;

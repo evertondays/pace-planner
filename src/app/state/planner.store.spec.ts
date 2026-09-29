@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { syntheticTrack, toGpx } from '../../testing/gpx-builder';
 import { ElevationService } from '../core/elevation/elevation.service';
 import { calculateVdot } from '../core/model/vdot';
+import { PreferencesService } from '../shared/preferences.service';
 import { PlannerStore } from './planner.store';
 
 describe('PlannerStore', () => {
@@ -29,6 +30,20 @@ describe('PlannerStore', () => {
     expect(store.routeError()).toBeNull();
     expect(Math.abs(store.estimate()!.totalTimeS - 2400)).toBeLessThan(1);
     expect(store.estimate()!.splits.length).toBe(10);
+  });
+
+  it('splits by mile when the user prefers miles and clears the selection', () => {
+    const store = createStore();
+    const preferences = TestBed.inject(PreferencesService);
+    store.referenceRace.set({ distanceM: 10_000, timeS: 2400 });
+    store.loadGpx(toGpx(syntheticTrack({ distanceM: 10_000, elevationAt: () => 5 })), 'r.gpx');
+    store.toggleSplit(3);
+
+    preferences.setUnit('mi');
+
+    expect(store.estimate()!.splits.length).toBe(7); // 6 full miles + 0.21 mi
+    expect(store.selectedSplit()).toBeNull();
+    expect(Math.abs(store.estimate()!.totalTimeS - 2400)).toBeLessThan(1);
   });
 
   it('exposes the VDOT before any route is loaded', () => {

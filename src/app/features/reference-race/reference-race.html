@@ -31,13 +31,13 @@
 
   @if (choice() === 'custom') {
     <div class="field">
-      <label class="label" for="custom-distance" i18n>Distância (km)</label>
+      <label class="label" for="custom-distance" i18n>Distância ({{ preferences.unit() }})</label>
       <input
         id="custom-distance"
         class="input"
         [class.invalid]="customInvalid()"
         inputmode="decimal"
-        [value]="customKm()"
+        [value]="customText()"
         (input)="applyCustomDistance($any($event.target).value, false)"
         (change)="applyCustomDistance($any($event.target).value, true)"
         [attr.aria-invalid]="customInvalid()"
@@ -45,7 +45,7 @@
       @if (customInvalid()) {
         <p class="small error-text">
           <app-icon name="alert" [size]="16" />
-          <span i18n>Use km com vírgula, por exemplo 15 ou 16,1.</span>
+          <span i18n>Use um número, por exemplo 15 ou 16,1.</span>
         </p>
       }
     </div>
@@ -108,7 +108,9 @@
                   }
                 </th>
                 <td class="metric num">{{ row.time }}</td>
-                <td class="metric num">{{ row.pace }}<span class="label">/km</span></td>
+                <td class="metric num">
+                  {{ row.pace }}<span class="label">/{{ preferences.unit() }}</span>
+                </td>
               </tr>
             }
           </tbody>

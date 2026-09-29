@@ -5,9 +5,10 @@
     <title>Pace Planner</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Replaced at startup with the translated text (App constructor). -->
     <meta
       name="description"
-      content="Estime o tempo de chegada e o pace por km de uma prova com altimetria."
+      content="Estime o tempo de chegada e o pace de cada km ou milha de uma prova com altimetria."
     />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -21,6 +22,39 @@
       try {
         var theme = localStorage.getItem('pace-planner:theme');
         if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+      } catch (e) {}
+
+      // Each language is its own build under a sub path (see APP_LOCALES and angular.json).
+      // Go to the saved language, or on a first visit to the browser language.
+      try {
+        var subPaths = { pt: '', en: 'en/', es: 'es/' };
+        var current = (document.documentElement.lang || 'pt').slice(0, 2);
+        var preferred = localStorage.getItem('pace-planner:locale');
+        if (!preferred) {
+          var languages = navigator.languages || [navigator.language || ''];
+          preferred = 'en';
+          for (var i = 0; i < languages.length; i++) {
+            var code = String(languages[i]).slice(0, 2).toLowerCase();
+            if (code in subPaths) {
+              preferred = code;
+              break;
+            }
+          }
+        }
+        // The guard stops a loop where a sub path serves the same build (e.g. ng serve).
+        var guardKey = 'pace-planner:locale-redirect';
+        if (
+          preferred in subPaths &&
+          preferred !== current &&
+          sessionStorage.getItem(guardKey) !== preferred
+        ) {
+          sessionStorage.setItem(guardKey, preferred);
+          var base = document.querySelector('base').getAttribute('href');
+          var root = base.slice(0, base.length - subPaths[current].length);
+          location.replace(root + subPaths[preferred] + location.search + location.hash);
+        } else if (preferred === current) {
+          sessionStorage.removeItem(guardKey);
+        }
       } catch (e) {}
     </script>
   </head>

@@ -1,4 +1,4 @@
-import { groupByKm } from './splits';
+import { groupBySplits } from './splits';
 import { Estimate, GradeCostModel, ReferenceRace, Segment } from './types';
 import { calculateVdot, speedForVo2, vo2maxFraction } from './vdot';
 
@@ -17,6 +17,7 @@ export function estimate(
   reference: ReferenceRace,
   segments: Segment[],
   model: GradeCostModel,
+  splitLengthM = 1000,
 ): Estimate {
   const vdot = calculateVdot(reference.distanceM, reference.timeS / 60);
   const totalDistanceM = segments.reduce((sum, s) => sum + s.distanceM, 0);
@@ -34,7 +35,7 @@ export function estimate(
     averagePaceSPerKm: solution.timeS / (totalDistanceM / 1000),
     iterations: solution.iterations,
     converged: solution.converged,
-    splits: groupByKm(segments, solution.flatSpeedMPerMin, model),
+    splits: groupBySplits(segments, solution.flatSpeedMPerMin, model, splitLengthM),
   };
 }
 

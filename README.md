@@ -17,7 +17,12 @@ npm start          # http://localhost:4200
 npm test -- --watch=false
 npm run spell      # cspell: identificadores e comentários em inglês
 npm run format     # prettier
+npx ng serve --configuration=en   # prévia em inglês (ou es)
+npx ng extract-i18n              # depois de mudar textos: atualize src/locale/messages.{en,es}.json
 ```
+
+O site existe em português (raiz), inglês (`/en/`) e espanhol (`/es/`), e o pace pode ser exibido em
+km ou milhas.
 
 ## Estrutura
 

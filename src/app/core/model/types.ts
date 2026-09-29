@@ -7,7 +7,6 @@ export interface Segment {
   startM: number;
   distanceM: number; // grid step, usually 20
   grade: number; // 0.05 = 5%
-  kmIndex: number; // 0-based km this segment belongs to
 }
 
 // Reference race entered by the user
@@ -28,9 +27,11 @@ export interface GradeCostModel {
   costMultiplier(grade: number): number;
 }
 
-export interface KmSplit {
-  km: number; // 1-based, for display
-  distanceM: number; // 1000, except the last one
+/** Split of one display unit (km or mile). */
+export interface Split {
+  index: number; // 1-based, for display
+  startM: number;
+  distanceM: number; // one unit, except the last one
   timeS: number;
   paceSPerKm: number;
   gainM: number;
@@ -46,5 +47,5 @@ export interface Estimate {
   averagePaceSPerKm: number;
   iterations: number;
   converged: boolean;
-  splits: KmSplit[];
+  splits: Split[];
 }

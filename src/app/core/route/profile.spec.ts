@@ -41,7 +41,9 @@ describe('profile', () => {
     });
 
     for (let km = 0; km < 5; km++) {
-      const kmSegments = profile.segments.filter((s) => s.kmIndex === km);
+      const kmSegments = profile.segments.filter(
+        (s) => s.startM >= km * 1000 && s.startM < (km + 1) * 1000,
+      );
       const distanceM = kmSegments.reduce((sum, s) => sum + s.distanceM, 0);
       const grade = kmSegments.reduce((sum, s) => sum + s.grade * s.distanceM, 0) / distanceM;
       expect(Math.abs(grade - 0.05)).toBeLessThan(0.005);
@@ -55,14 +57,14 @@ describe('profile', () => {
     expect(profile.summary.gainM).toBeLessThan(10);
   });
 
-  it('assigns segments to km and clamps absurd grades', () => {
+  it('builds one segment per grid step and clamps absurd grades', () => {
     const profile = profileOf({
       distanceM: 2000,
       elevationAt: (d) => (d > 1000 ? 200 : 0), // 200 m wall
     });
 
-    expect(profile.segments[49].kmIndex).toBe(0);
-    expect(profile.segments[50].kmIndex).toBe(1);
+    expect(profile.segments.length).toBe(100);
+    expect(profile.segments[50].startM).toBe(1000);
     expect(Math.max(...profile.segments.map((s) => s.grade))).toBe(0.3);
   });
 });

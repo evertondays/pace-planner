@@ -1,15 +1,25 @@
-import { computed, effect, inject, Injectable, signal, untracked } from '@angular/core';
+import {
+  computed,
+  effect,
+  inject,
+  Injectable,
+  linkedSignal,
+  signal,
+  untracked,
+} from '@angular/core';
 import { ElevationSamples, gridElevationsM } from '../core/elevation/elevation-samples';
 import { ElevationService } from '../core/elevation/elevation.service';
 import { estimate, predictFlatTimeS } from '../core/model/estimator';
 import { createGradeCostModel, DEFAULT_MODEL_CONFIG } from '../core/model/grade-cost';
 import { ModelConfig, ReferenceRace } from '../core/model/types';
+import { UNIT_LENGTH_M } from '../core/model/units';
 import { calculateVdot } from '../core/model/vdot';
 import { cumulativeDistancesM } from '../core/route/geo';
 import { parseGpx } from '../core/route/gpx-parser';
 import { buildProfile, DEFAULT_PROFILE_CONFIG, MIN_ROUTE_DISTANCE_M } from '../core/route/profile';
 import { resampleRoute } from '../core/route/resampling';
 import { ElevationSource, GpsPoint, ProfileConfig } from '../core/route/types';
+import { PreferencesService } from '../shared/preferences.service';
 import { loadSettings, loadStoredRoute, saveRoute, saveSettings } from './planner.storage';
 
 export interface LoadedRoute {
@@ -33,6 +43,7 @@ export const REFERENCE_MAX_DISTANCE_M = 42_195;
 @Injectable({ providedIn: 'root' })
 export class PlannerStore {
   private readonly elevationService = inject(ElevationService);
+  private readonly preferences = inject(PreferencesService);
 
   // Inputs
   readonly rawRoute = signal<LoadedRoute | null>(null);
@@ -42,7 +53,15 @@ export class PlannerStore {
   readonly referenceRace = signal<ReferenceRace>({ distanceM: 21_097.5, timeS: 5400 });
   readonly modelConfig = signal<ModelConfig>(DEFAULT_MODEL_CONFIG);
   readonly apiElevation = signal<ApiElevationState>({ status: 'idle' });
-  readonly selectedKm = signal<number | null>(null);
+
+  /** Length of a split in the user's unit (1 km or 1 mile). */
+  readonly splitLengthM = computed(() => UNIT_LENGTH_M[this.preferences.unit()]);
+
+  /** 1-based split highlighted in the table, chart and map; cleared when the unit changes. */
+  readonly selectedSplit = linkedSignal<number, number | null>({
+    source: this.splitLengthM,
+    computation: () => null,
+  });
 
   // Derived
   readonly grid = computed(() => {
@@ -86,7 +105,7 @@ export class PlannerStore {
     const profile = this.profile();
     const reference = this.referenceRace();
     if (!profile || !isValidReference(reference)) return null;
-    return estimate(reference, profile.segments, this.gradeModel());
+    return estimate(reference, profile.segments, this.gradeModel(), this.splitLengthM());
   });
 
   /** Time for the same effort on a flat course of the same distance. */
@@ -155,7 +174,7 @@ export class PlannerStore {
     this.rawRoute.set(null);
     this.routeError.set(null);
     this.apiElevation.set({ status: 'idle' });
-    this.selectedKm.set(null);
+    this.selectedSplit.set(null);
   }
 
   retryApiElevation(): void {
@@ -163,14 +182,14 @@ export class PlannerStore {
     if (route) void this.fetchApiElevation(route);
   }
 
-  toggleKm(km: number): void {
-    this.selectedKm.update((selected) => (selected === km ? null : km));
+  toggleSplit(index: number): void {
+    this.selectedSplit.update((selected) => (selected === index ? null : index));
   }
 
   private setRoute(route: LoadedRoute): void {
     this.routeError.set(null);
     this.apiElevation.set({ status: 'idle' });
-    this.selectedKm.set(null);
+    this.selectedSplit.set(null);
     this.rawRoute.set(route);
     if (!route.points.every((p) => p.elevationM !== undefined)) {
       this.elevationSource.set('open-meteo');

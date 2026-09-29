@@ -1,12 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { UNIT_LENGTH_M } from '../../core/model/units';
+import { MIN_ROUTE_DISTANCE_M } from '../../core/route/profile';
 import { ElevationSource } from '../../core/route/types';
-import {
-  formatDecimal,
-  formatDistanceKm,
-  formatNumber,
-  parseDecimal,
-} from '../../shared/formatters';
+import { formatDecimal, formatDistance, formatNumber, parseDecimal } from '../../shared/formatters';
 import { Icon } from '../../shared/icon';
+import { PreferencesService } from '../../shared/preferences.service';
 import { PlannerStore, RouteError } from '../../state/planner.store';
 
 const ERROR_MESSAGES: Record<RouteError, string> = {
@@ -24,6 +22,7 @@ const ERROR_MESSAGES: Record<RouteError, string> = {
 })
 export class RouteUpload {
   protected readonly store = inject(PlannerStore);
+  protected readonly preferences = inject(PreferencesService);
   protected readonly dragging = signal(false);
   protected readonly officialDistanceInvalid = signal(false);
 
@@ -37,11 +36,11 @@ export class RouteUpload {
     return route?.name ?? route?.fileName.replace(/\.gpx$/i, '') ?? '';
   });
 
-  protected readonly distanceKm = computed(() => {
+  protected readonly distance = computed(() => {
     const profile = this.store.profile();
     const grid = this.store.grid();
     const distanceM = profile?.summary.totalDistanceM ?? grid?.points.at(-1)?.distanceM;
-    return distanceM === undefined ? null : formatDistanceKm(distanceM, 2);
+    return distanceM === undefined ? null : formatDistance(distanceM, this.preferences.unit(), 2);
   });
 
   protected readonly gainM = computed(() => {
@@ -54,10 +53,15 @@ export class RouteUpload {
     return summary ? formatNumber(summary.lossM) : null;
   });
 
-  protected readonly officialDistanceKm = computed(() => {
+  protected readonly officialDistance = computed(() => {
     const distanceM = this.store.profileConfig().officialDistanceM;
-    return distanceM ? formatDecimal(distanceM / 1000) : '';
+    return distanceM ? formatDecimal(distanceM / UNIT_LENGTH_M[this.preferences.unit()]) : '';
   });
+
+  /** A half marathon in the user's unit, as an example of the expected format. */
+  protected readonly officialDistancePlaceholder = computed(() =>
+    formatDecimal(21_097.5 / UNIT_LENGTH_M[this.preferences.unit()]),
+  );
 
   protected onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -84,10 +88,11 @@ export class RouteUpload {
       this.store.profileConfig.update(({ officialDistanceM: _, ...config }) => config);
       return;
     }
-    const km = parseDecimal(text);
-    const valid = km !== null && km >= 0.5 && km <= 400;
+    const value = parseDecimal(text);
+    const officialDistanceM = value === null ? 0 : value * UNIT_LENGTH_M[this.preferences.unit()];
+    const valid = officialDistanceM >= MIN_ROUTE_DISTANCE_M && officialDistanceM <= 400_000;
     this.officialDistanceInvalid.set(!valid);
-    if (valid) this.store.profileConfig.update((c) => ({ ...c, officialDistanceM: km * 1000 }));
+    if (valid) this.store.profileConfig.update((c) => ({ ...c, officialDistanceM }));
   }
 
   protected setElevationSource(source: ElevationSource): void {

@@ -8,7 +8,8 @@
         <div>
           <dt class="label" i18n>Distância</dt>
           <dd>
-            <span class="metric">{{ distanceKm() }}</span> <span class="label">km</span>
+            <span class="metric">{{ distance() }}</span>
+            <span class="label">{{ preferences.unit() }}</span>
           </dd>
         </div>
         <div>
@@ -36,15 +37,16 @@
     </div>
 
     <div class="field">
-      <label class="label" for="official-distance" i18n>Distância oficial (km)</label>
+      <label class="label" for="official-distance" i18n
+        >Distância oficial ({{ preferences.unit() }})</label
+      >
       <input
         id="official-distance"
         class="input"
         [class.invalid]="officialDistanceInvalid()"
         inputmode="decimal"
-        placeholder="21,0975"
-        i18n-placeholder
-        [value]="officialDistanceKm()"
+        [placeholder]="officialDistancePlaceholder()"
+        [value]="officialDistance()"
         (change)="setOfficialDistance($any($event.target).value)"
         [attr.aria-invalid]="officialDistanceInvalid()"
         aria-describedby="official-distance-help"

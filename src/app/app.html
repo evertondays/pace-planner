@@ -1,14 +1,47 @@
 <header class="topbar">
   <div class="container topbar-inner">
     <p class="brand">Pace Planner</p>
-    <button
-      type="button"
-      class="theme-toggle"
-      (click)="theme.toggle()"
-      [attr.aria-label]="themeToggleLabel()"
-    >
-      <app-icon [name]="theme.theme() === 'dark' ? 'sun' : 'moon'" [size]="20" />
-    </button>
+    <div class="preferences">
+      <select
+        class="control language"
+        aria-label="Idioma"
+        i18n-aria-label
+        (change)="preferences.switchLocale($any($event.target).value)"
+      >
+        @for (locale of locales; track locale.code) {
+          <option
+            [value]="locale.code"
+            [selected]="locale.code === preferences.locale.code"
+            [attr.lang]="locale.code"
+            [attr.title]="locale.name"
+          >
+            {{ locale.label }}
+          </option>
+        }
+      </select>
+
+      <div class="control segmented" role="radiogroup" aria-label="Unidade" i18n-aria-label>
+        @for (unit of units; track unit) {
+          <button
+            type="button"
+            role="radio"
+            [attr.aria-checked]="preferences.unit() === unit"
+            (click)="preferences.setUnit(unit)"
+          >
+            {{ unit }}
+          </button>
+        }
+      </div>
+
+      <button
+        type="button"
+        class="control theme-toggle"
+        (click)="theme.toggle()"
+        [attr.aria-label]="themeToggleLabel()"
+      >
+        <app-icon [name]="theme.theme() === 'dark' ? 'sun' : 'moon'" [size]="20" />
+      </button>
+    </div>
   </div>
 </header>
 
@@ -47,7 +80,7 @@
           </li>
           <li>
             <span class="metric">03</span>
-            <span i18n>Receba o tempo estimado e o pace de cada km.</span>
+            <span i18n>Receba o tempo estimado e o pace de cada km ou milha.</span>
           </li>
         </ol>
         <p class="body muted" i18n>

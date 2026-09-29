@@ -13,7 +13,7 @@ export function buildSegments(parts: RoutePart[], stepM = 20): Segment[] {
     const endM = startM + part.distanceM;
     while (startM < endM - 1e-9) {
       const distanceM = Math.min(stepM, endM - startM);
-      segments.push({ startM, distanceM, grade: part.grade, kmIndex: Math.floor(startM / 1000) });
+      segments.push({ startM, distanceM, grade: part.grade });
       startM += distanceM;
     }
   }

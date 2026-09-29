@@ -30,6 +30,8 @@ O MVP entrega o cálculo completo para um percurso carregado via GPX e uma prova
 - Mapa do percurso, gráfico de altimetria com pace sobreposto e tabela de splits.
 - Escolha do modelo de inclinação (Minetti com limite de descida ou curva conservadora).
 - Últimos cálculos salvos em `localStorage`.
+- Interface em português, inglês e espanhol (um build por idioma: raiz, `/en/` e `/es/`), com seletor no topo; na primeira visita vale o idioma do navegador.
+- Unidade de distância em km ou milhas, escolhida no topo: pace, distâncias, parciais, gráfico e marcadores do mapa seguem a preferência. Elevação continua em metros.
 
 **Fora do escopo (por enquanto)**
 
@@ -69,7 +71,7 @@ Os termos do domínio sempre usam a mesma tradução no código.
 | Piso e fator de descida | `downhillFloor`, `downhillFactor` |
 | Reamostragem, suavização | `resampling`, `smoothing` |
 | Estimativa | `estimate` |
-| Parcial por km | `kmSplit` |
+| Parcial (por km ou milha) | `split` |
 
 ## Modelo fisiológico
 
@@ -141,14 +143,14 @@ O percurso vira uma única "distância plana equivalente", e o tempo final sai d
 **Insight que simplifica tudo:** como m(i) não depende da velocidade, a soma Σ ds × m(i) é constante para o percurso. Basta calculá-la uma vez; a iteração só ajusta a velocidade plana à duração.
 
 1. Calcule o VDOT a partir da prova de referência.
-2. Divida o percurso em segmentos de comprimento ds com inclinação i (ver Dados de elevação). Os limites de cada km devem coincidir com limites de segmento.
+2. Divida o percurso em segmentos de comprimento ds com inclinação i (ver Dados de elevação).
 3. Calcule a distância plana equivalente: D\_eq = Σ ds × m(i).
 4. Chute inicial: T₀ pela fórmula de Riegel, T₀ = t\_ref × (D\_eq / D\_ref)^1,06.
 5. Itere até |T\_novo − T| < 0,5 s, com teto de 50 iterações:
    1. VO2 alvo = VDOT × %VO2max(T).
    2. v\_plana = inversão da quadrática para esse VO2.
    3. T\_novo = D\_eq / v\_plana.
-6. Splits: o tempo do km k é Σ ds × m(i) / v\_plana sobre os segmentos daquele km. O último km pode ser parcial (por exemplo, os 100 m finais da meia).
+6. Splits: o tempo da parcial k (1 km ou 1 milha, conforme a preferência do usuário) é Σ ds × m(i) / v\_plana sobre os trechos daquela parcial. Um segmento que cruza o limite de uma parcial é dividido nele, então qualquer comprimento de parcial funciona sobre a grade de 20 m. A última parcial pode ser incompleta (por exemplo, os 97,5 m finais da meia em km); uma sobra menor que 5 m é somada à parcial anterior.
 
 ```typescript
 export function estimate(
@@ -183,7 +185,7 @@ export function estimate(
     equivalentPaceSPerKm: 60_000 / flatSpeed,
     averagePaceSPerKm: totalTimeS / (totalDistanceM / 1000),
     iterations: Math.min(iterations + 1, 50),
-    splits: groupByKm(segments, flatSpeed, model),
+    splits: groupBySplits(segments, flatSpeed, model, splitLengthM),
   };
 }
 ```
@@ -230,7 +232,7 @@ src/app/
 │   │   ├── vdot.ts               # calculateVdot, vo2maxFraction, speedForVo2
 │   │   ├── grade-cost.ts         # minetti, floor and conservative modes
 │   │   ├── estimator.ts          # estimate(): iteration and equivalent distance
-│   │   └── splits.ts             # groupByKm
+│   │   └── splits.ts             # groupBySplits (km or mile)
 │   ├── route/
 │   │   ├── gpx-parser.ts         # DOMParser -> GpsPoint[]
 │   │   ├── geo.ts                # haversine, cumulative distance
@@ -299,7 +301,6 @@ export interface Segment {
   startM: number;
   distanceM: number;          // grid step, usually 20
   grade: number;              // 0.05 = 5%
-  kmIndex: number;            // 0-based km this segment belongs to
 }
 
 export interface ProfileSummary {
@@ -337,10 +338,11 @@ export interface ProfileConfig {
   officialDistanceM?: number;
 }
 
-// Result
-export interface KmSplit {
-  km: number;                 // 1-based, for display
-  distanceM: number;          // 1000, except the last one
+// Result: one split per km or mile, as the user prefers
+export interface Split {
+  index: number;              // 1-based, for display
+  startM: number;
+  distanceM: number;          // 1000 or 1609.344, except the last one
   timeS: number;
   paceSPerKm: number;
   gainM: number;
@@ -354,7 +356,7 @@ export interface Estimate {
   equivalentPaceSPerKm: number; // flat pace of the sustained effort
   averagePaceSPerKm: number;
   iterations: number;
-  splits: KmSplit[];
+  splits: Split[];
 }
 ```
 

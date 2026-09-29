@@ -1,39 +1,56 @@
 <section aria-labelledby="splits-heading">
   <div class="header">
-    <h2 id="splits-heading" class="heading" i18n>Pace por km</h2>
-    <p class="small muted" i18n>
-      Esforço constante: <app-icon class="inline-icon" name="arrow-up" [size]="14" /> mais lento e
-      <app-icon class="inline-icon" name="arrow-down" [size]="14" /> mais rápido que o pace plano
-      equivalente. Clique num km para destacá-lo no mapa e no gráfico.
-    </p>
+    @if (preferences.unit() === 'mi') {
+      <h2 id="splits-heading" class="heading" i18n>Pace por milha</h2>
+      <p class="small muted" i18n>
+        Esforço constante: <app-icon class="inline-icon" name="arrow-up" [size]="14" /> mais lento e
+        <app-icon class="inline-icon" name="arrow-down" [size]="14" /> mais rápido que o pace plano
+        equivalente. Clique numa milha para destacá-la no mapa e no gráfico.
+      </p>
+    } @else {
+      <h2 id="splits-heading" class="heading" i18n>Pace por km</h2>
+      <p class="small muted" i18n>
+        Esforço constante: <app-icon class="inline-icon" name="arrow-up" [size]="14" /> mais lento e
+        <app-icon class="inline-icon" name="arrow-down" [size]="14" /> mais rápido que o pace plano
+        equivalente. Clique num km para destacá-lo no mapa e no gráfico.
+      </p>
+    }
   </div>
 
   <div class="scroll">
     <table>
       <thead>
         <tr>
-          <th scope="col" class="label" i18n>Km</th>
+          <th scope="col" class="label">
+            @if (preferences.unit() === 'mi') {
+              <ng-container i18n>Milha</ng-container>
+            } @else {
+              <ng-container i18n>Km</ng-container>
+            }
+          </th>
           <th scope="col" class="label num" i18n>Pace alvo</th>
           <th scope="col" class="label num" i18n>Vs. plano</th>
           <th scope="col" class="label num" i18n>Acumulado</th>
-          <th scope="col" class="label num">D+</th>
-          <th scope="col" class="label num">D−</th>
+          <th scope="col" class="label num">D+ (m)</th>
+          <th scope="col" class="label num">D− (m)</th>
           <th scope="col" class="label num" i18n>Inclinação</th>
         </tr>
       </thead>
       <tbody>
-        @for (row of rows(); track row.km) {
+        @for (row of rows(); track row.index) {
           <tr
             tabindex="0"
-            [class.selected]="store.selectedKm() === row.km"
-            [attr.aria-current]="store.selectedKm() === row.km ? 'true' : null"
-            (click)="store.toggleKm(row.km)"
-            (keydown)="onKeydown($event, row.km)"
+            [class.selected]="store.selectedSplit() === row.index"
+            [attr.aria-current]="store.selectedSplit() === row.index ? 'true' : null"
+            (click)="store.toggleSplit(row.index)"
+            (keydown)="onKeydown($event, row.index)"
           >
-            <th scope="row" class="metric km">
-              {{ row.km }}
+            <th scope="row" class="metric index">
+              {{ row.index }}
               @if (row.partialDistance) {
-                <span class="label partial">{{ row.partialDistance }} km</span>
+                <span class="label partial"
+                  >{{ row.partialDistance }} {{ preferences.unit() }}</span
+                >
               }
             </th>
             <td class="metric num">{{ row.pace }}</td>

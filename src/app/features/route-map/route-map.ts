@@ -11,7 +11,11 @@ import {
   ViewEncapsulation,
 } from '@angular/core';
 import * as L from 'leaflet';
+import { Split } from '../../core/model/types';
+import { DistanceUnit, UNIT_LENGTH_M } from '../../core/model/units';
+import { interpolateSeries } from '../../core/route/resampling';
 import { ProfilePoint } from '../../core/route/types';
+import { PreferencesService } from '../../shared/preferences.service';
 import { PlannerStore } from '../../state/planner.store';
 
 const OSM_ATTRIBUTION =
@@ -26,7 +30,7 @@ const OSM_ATTRIBUTION =
         #host
         class="map"
         role="region"
-        aria-label="Mapa do percurso com marcadores a cada km"
+        aria-label="Mapa do percurso com marcadores a cada km ou milha"
         i18n-aria-label
       ></div>
     </section>
@@ -38,6 +42,7 @@ const OSM_ATTRIBUTION =
 })
 export class RouteMap {
   private readonly store = inject(PlannerStore);
+  private readonly preferences = inject(PreferencesService);
   private readonly host = viewChild.required<ElementRef<HTMLDivElement>>('host');
   private readonly ready = signal(false);
   private map?: L.Map;
@@ -72,36 +77,44 @@ export class RouteMap {
 
     effect(() => {
       const points = this.store.profile()?.points;
+      const unit = this.preferences.unit();
       if (!this.ready() || !this.map || !points) return;
-      this.drawRoute(this.map, points);
+      this.drawRoute(this.map, points, unit);
     });
 
     effect(() => {
       const points = this.store.profile()?.points;
-      const selectedKm = this.store.selectedKm();
+      const index = this.store.selectedSplit();
+      const split = index ? this.store.estimate()?.splits[index - 1] : undefined;
       if (!this.ready() || !this.map || !points) return;
-      this.drawSelection(this.map, points, selectedKm);
+      this.drawSelection(this.map, points, split);
     });
   }
 
-  private drawRoute(map: L.Map, points: ProfilePoint[]): void {
+  private drawRoute(map: L.Map, points: ProfilePoint[], unit: DistanceUnit): void {
     this.routeLayer.clearLayers();
     const latLngs = points.map((p) => L.latLng(p.lat, p.lon));
     const line = L.polyline(latLngs, { className: 'route-line', interactive: false });
     this.routeLayer.addLayer(line);
 
-    for (const point of points) {
-      const km = Math.round(point.distanceM / 1000);
-      if (km === 0 || Math.abs(point.distanceM - km * 1000) > 1e-6) continue;
-      const marker = L.marker([point.lat, point.lon], {
-        icon: L.divIcon({ className: 'km-marker', html: String(km), iconSize: [24, 24] }),
+    // One marker where each km or mile ends; mile marks fall between grid points.
+    const unitM = UNIT_LENGTH_M[unit];
+    const totalM = points[points.length - 1].distanceM;
+    const marksM: number[] = [];
+    for (let d = unitM; d < totalM - 1e-6; d += unitM) marksM.push(d);
+    const markPoints = positionsAt(points, marksM);
+
+    markPoints.forEach((position, i) => {
+      const index = i + 1;
+      const marker = L.marker(position, {
+        icon: L.divIcon({ className: 'split-marker', html: String(index), iconSize: [24, 24] }),
         keyboard: true,
-        title: $localize`Km ${km}`,
+        title: unit === 'mi' ? $localize`Milha ${index}` : $localize`Km ${index}`,
       });
-      // The marker sits where km `km` ends.
-      marker.on('click', () => this.store.toggleKm(km));
+      // The marker sits where split `index` ends.
+      marker.on('click', () => this.store.toggleSplit(index));
       this.routeLayer.addLayer(marker);
-    }
+    });
 
     const start = points[0];
     const finish = points[points.length - 1];
@@ -111,21 +124,21 @@ export class RouteMap {
     map.fitBounds(line.getBounds(), { padding: [24, 24] });
   }
 
-  private drawSelection(map: L.Map, points: ProfilePoint[], selectedKm: number | null): void {
+  private drawSelection(map: L.Map, points: ProfilePoint[], split: Split | undefined): void {
     this.selectionLayer.clearLayers();
-    if (!selectedKm) return;
+    if (!split) return;
 
-    const startM = (selectedKm - 1) * 1000;
-    const endM = selectedKm * 1000;
-    const kmPoints = points.filter(
-      (p) => p.distanceM >= startM - 1e-6 && p.distanceM <= endM + 1e-6,
-    );
-    if (kmPoints.length < 2) return;
+    const startM = split.startM;
+    const endM = split.startM + split.distanceM;
+    const [start, end] = positionsAt(points, [startM, endM]);
+    const inside = points
+      .filter((p) => p.distanceM > startM && p.distanceM < endM)
+      .map((p) => L.latLng(p.lat, p.lon));
 
-    const line = L.polyline(
-      kmPoints.map((p) => L.latLng(p.lat, p.lon)),
-      { className: 'route-line-selected', interactive: false },
-    );
+    const line = L.polyline([start, ...inside, end], {
+      className: 'route-line-selected',
+      interactive: false,
+    });
     this.selectionLayer.addLayer(line);
     if (!map.getBounds().contains(line.getBounds())) map.panTo(line.getBounds().getCenter());
   }
@@ -137,4 +150,20 @@ export class RouteMap {
       interactive: false,
     });
   }
+}
+
+/** Map positions at the given distances along the profile, interpolated between points. */
+function positionsAt(points: ProfilePoint[], distancesM: number[]): L.LatLng[] {
+  const fromM = points.map((p) => p.distanceM);
+  const lats = interpolateSeries(
+    fromM,
+    points.map((p) => p.lat),
+    distancesM,
+  );
+  const lons = interpolateSeries(
+    fromM,
+    points.map((p) => p.lon),
+    distancesM,
+  );
+  return distancesM.map((_, i) => L.latLng(lats[i], lons[i]));
 }

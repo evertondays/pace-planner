@@ -1,10 +1,17 @@
+import { DistanceUnit, UNIT_LENGTH_M } from '../core/model/units';
+
 /**
- * Conversion from model units (meters, seconds, grade fractions) to display text.
- * Numbers follow pt-BR conventions (decimal comma).
+ * Conversion from model units (meters, seconds, grade fractions, pace per km) to
+ * display text, in the app locale and the user's distance unit.
  */
 
-const LOCALE = 'pt-BR';
 const MINUS = '−';
+let numberLocale = 'pt-BR';
+
+/** Sets the locale for number formatting (decimal comma or point). Called once at startup. */
+export function setNumberLocale(locale: string): void {
+  numberLocale = locale;
+}
 
 /** 5400 → "1:30:00"; 1245 → "20:45". */
 export function formatDuration(timeS: number): string {
@@ -15,10 +22,15 @@ export function formatDuration(timeS: number): string {
   return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 }
 
-/** 256 → "4:16" (per km). */
-export function formatPace(paceSPerKm: number): string {
-  const total = Math.round(paceSPerKm);
+/** Pace in m:ss per unit: 256 s/km → "4:16" (km) or "6:52" (mi). */
+export function formatPace(paceSPerKm: number, unit: DistanceUnit = 'km'): string {
+  const total = Math.round(toPerUnit(paceSPerKm, unit));
   return `${Math.floor(total / 60)}:${pad(total % 60)}`;
+}
+
+/** Signed pace difference per unit, e.g. "+0:12" or "−0:08". */
+export function formatSignedPace(deltaSPerKm: number, unit: DistanceUnit = 'km'): string {
+  return formatSignedDuration(toPerUnit(deltaSPerKm, unit));
 }
 
 /** Signed difference in m:ss, e.g. "+0:12" or "−1:05:30". Zero is "0:00". */
@@ -28,9 +40,23 @@ export function formatSignedDuration(deltaS: number): string {
   return `${rounded > 0 ? '+' : MINUS}${formatDuration(Math.abs(rounded))}`;
 }
 
-/** 21097.5 → "21,1" (km). */
-export function formatDistanceKm(distanceM: number, fractionDigits = 1): string {
-  return formatNumber(distanceM / 1000, fractionDigits);
+/** 21097.5 m → "21,1" (km) or "13,1" (mi). */
+export function formatDistance(
+  distanceM: number,
+  unit: DistanceUnit = 'km',
+  fractionDigits = 1,
+): string {
+  return formatNumber(distanceM / UNIT_LENGTH_M[unit], fractionDigits);
+}
+
+/** "km" or "mi". */
+export function distanceUnitLabel(unit: DistanceUnit): string {
+  return unit;
+}
+
+/** "min/km" or "min/mi". */
+export function paceUnitLabel(unit: DistanceUnit): string {
+  return `min/${unit}`;
 }
 
 /** 0.023 → "+2,3%"; -0.01 → "−1,0%". */
@@ -42,7 +68,7 @@ export function formatGrade(grade: number, fractionDigits = 1): string {
 }
 
 export function formatNumber(value: number, fractionDigits = 0): string {
-  return value.toLocaleString(LOCALE, {
+  return value.toLocaleString(numberLocale, {
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits,
   });
@@ -50,7 +76,7 @@ export function formatNumber(value: number, fractionDigits = 0): string {
 
 /** Up to `maxFractionDigits`, without trailing zeros: 21.0975 → "21,0975"; 10 → "10". */
 export function formatDecimal(value: number, maxFractionDigits = 4): string {
-  return value.toLocaleString(LOCALE, {
+  return value.toLocaleString(numberLocale, {
     maximumFractionDigits: maxFractionDigits,
     useGrouping: false,
   });
@@ -72,11 +98,15 @@ export function parseDuration(text: string): number | null {
   return timeS > 0 ? timeS : null;
 }
 
-/** Parses a pt-BR or en decimal ("21,1" or "21.1"). Returns null if invalid. */
+/** Parses a decimal with comma or point ("21,1" or "21.1"). Returns null if invalid. */
 export function parseDecimal(text: string): number | null {
   const normalized = text.trim().replace(',', '.');
   if (!/^\d+(\.\d+)?$/.test(normalized)) return null;
   return Number(normalized);
+}
+
+function toPerUnit(secondsPerKm: number, unit: DistanceUnit): number {
+  return (secondsPerKm * UNIT_LENGTH_M[unit]) / 1000;
 }
 
 function pad(n: number): string {

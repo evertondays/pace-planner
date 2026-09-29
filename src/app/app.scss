@@ -34,21 +34,82 @@
   font-style: italic;
   line-height: 1;
   text-transform: uppercase;
+
+  @media (max-width: 480px) {
+    font-size: 24px;
+  }
+}
+
+.preferences {
+  display: flex;
+  gap: var(--space-2);
+
+  @media (max-width: 480px) {
+    gap: var(--space-1);
+  }
+}
+
+// Language, unit and theme share one compact control style.
+.control {
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-0);
+  background: var(--bg);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.language {
+  appearance: none;
+  padding: 0 var(--space-6) 0 var(--space-2);
+  // Small chevron drawn with gradients so it follows the text color in both themes.
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 13px) 55%,
+    calc(100% - 9px) 55%;
+  background-size: 4px 4px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.segmented {
+  display: flex;
+
+  button {
+    width: 40px;
+    border: 0;
+    background: none;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    cursor: pointer;
+
+    & + button {
+      border-left: 1px solid var(--line);
+    }
+
+    &[aria-checked='true'] {
+      background: var(--inverse);
+      color: var(--on-inverse);
+    }
+  }
 }
 
 .theme-toggle {
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-0);
-  background: var(--bg);
+  width: 40px;
   cursor: pointer;
+}
 
-  &:hover {
-    background: var(--surface-strong);
-  }
+.language:hover,
+.segmented button:not([aria-checked='true']):hover,
+.theme-toggle:hover {
+  background-color: var(--surface-strong);
 }
 
 // 12 columns: 4 for inputs, 8 for results.
@@ -73,9 +134,19 @@
   flex-direction: column;
   gap: var(--space-10);
 
+  // On desktop the sidebar sticks and scrolls on its own when taller than the viewport,
+  // so its bottom is reachable without scrolling the whole page first.
   @media (min-width: 961px) {
     position: sticky;
     top: var(--space-6);
+    max-height: calc(100vh - 2 * var(--space-6));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
+    // Room for the 2px focus outline, which overflow would otherwise clip.
+    margin: calc(-1 * var(--space-1));
+    padding: var(--space-1);
   }
 
   @media (max-width: 960px) {
