@@ -25,10 +25,12 @@
       } catch (e) {}
 
       // Each language is its own build under a sub path (see APP_LOCALES and angular.json).
-      // Go to the saved language, or on a first visit to the browser language.
+      // The root (Portuguese) sends visitors to their saved language, or on a first visit to
+      // the browser language. A link straight to en/ or es/ always opens in that language.
       try {
         var subPaths = { pt: '', en: 'en/', es: 'es/' };
         var current = (document.documentElement.lang || 'pt').slice(0, 2);
+        if (subPaths[current] !== '') throw 'explicit language';
         var preferred = localStorage.getItem('pace-planner:locale');
         if (!preferred) {
           var languages = navigator.languages || [navigator.language || ''];
@@ -49,8 +51,7 @@
           sessionStorage.getItem(guardKey) !== preferred
         ) {
           sessionStorage.setItem(guardKey, preferred);
-          var base = document.querySelector('base').getAttribute('href');
-          var root = base.slice(0, base.length - subPaths[current].length);
+          var root = document.querySelector('base').getAttribute('href');
           location.replace(root + subPaths[preferred] + location.search + location.hash);
         } else if (preferred === current) {
           sessionStorage.removeItem(guardKey);
